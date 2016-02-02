@@ -1,0 +1,775 @@
+<!doctype html>
+<html class="theme-next pisces">
+<head>
+    <meta charset="UTF-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+    
+    <meta http-equiv="Cache-Control" content="no-transform" />
+    <meta http-equiv="Cache-Control" content="no-siteapp" />
+    <meta name="google-site-verification" content="RQjYbfNUu52PyjtXMobH8lQVJVT6vcSrm5StMKudtzE" />
+    <meta name="baidu-site-verification" content="xfiIYXR4dF" />
+    <meta name="uyan_auth" content="57a2dd9b3d" />
+    
+    <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css"/>
+    
+    <link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+    <link href="/css/main.css?v=0.5.0" rel="stylesheet" type="text/css" />
+    
+    <meta name="keywords" content="SQL注入,Web安全," />
+    
+    <link rel="alternate" href="/atom.xml" title="潘良虎的随想录" type="application/atom+xml" />
+    <link rel="shortcut icon" type="image/x-icon" href="/images/favicon.ico?v=0.5.0" />
+    
+    <meta name="description" content="在Web1.0时代，人们更多是关注服务器端动态脚本语言的安全问题，比如将一个可执行脚本（俗称Webshell）通过脚本语言的漏洞上传到服务器上，从而获得服务器权限。在Web发展初期，随着动态脚本语言的发展和普及，以及早期工程师对安全问题认知不足导致很多”安全血案”的发生，至今仍然遗留下许多历史问题，比如PHP语言至今仍然无法从语言本身杜绝「文件包含漏洞」（参见这里），只能依靠工程师良好的代码规范和">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Web安全之SQL注入攻击技巧与防范">
+<meta property="og:url" content="http://www.plhwin.com/2014/06/13/web-security-sql/index.html">
+<meta property="og:site_name" content="潘良虎的随想录">
+<meta property="og:description" content="在Web1.0时代，人们更多是关注服务器端动态脚本语言的安全问题，比如将一个可执行脚本（俗称Webshell）通过脚本语言的漏洞上传到服务器上，从而获得服务器权限。在Web发展初期，随着动态脚本语言的发展和普及，以及早期工程师对安全问题认知不足导致很多”安全血案”的发生，至今仍然遗留下许多历史问题，比如PHP语言至今仍然无法从语言本身杜绝「文件包含漏洞」（参见这里），只能依靠工程师良好的代码规范和">
+<meta property="og:updated_time" content="2016-02-01T17:52:41.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Web安全之SQL注入攻击技巧与防范">
+<meta name="twitter:description" content="在Web1.0时代，人们更多是关注服务器端动态脚本语言的安全问题，比如将一个可执行脚本（俗称Webshell）通过脚本语言的漏洞上传到服务器上，从而获得服务器权限。在Web发展初期，随着动态脚本语言的发展和普及，以及早期工程师对安全问题认知不足导致很多”安全血案”的发生，至今仍然遗留下许多历史问题，比如PHP语言至今仍然无法从语言本身杜绝「文件包含漏洞」（参见这里），只能依靠工程师良好的代码规范和">
+    
+    <script type="text/javascript" id="hexo.configuration">
+      var NexT = window.NexT || {};
+      var CONFIG = {
+        
+        scheme: 'Pisces',
+        sidebar: {"position":"right","display":"always"},
+        fancybox: true,
+        motion: false
+      };
+    </script>
+
+    <title> Web安全之SQL注入攻击技巧与防范 | 潘良虎的随想录 </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?27f391e757316463639283a690e7e448";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-right page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">潘良虎的随想录</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle">技术与创业，科技与人文</p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu ">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-home fa-fw"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-th fa-fw"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-tags fa-fw"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-archive fa-fw"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+      
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                Web安全之SQL注入攻击技巧与防范
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-original-tag">原创</span>
+
+          <span class="post-time">
+            <span class="post-meta-item-text"> </span>
+            <time itemprop="dateCreated" datetime="2014-06-13T15:57:52+08:00" content="2014-06-13">
+              2014-06-13
+            </time>
+          </span>
+
+          <span class="post-author">彼得潘</span>
+
+          
+            <span class="post-category" >
+              <span class="post-meta-item-text"> </span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/安全/" itemprop="url" rel="index">
+                    <span itemprop="name">安全</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+
+          
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>在Web1.0时代，人们更多是关注服务器端动态脚本语言的安全问题，比如将一个可执行脚本（俗称Webshell）通过脚本语言的漏洞上传到服务器上，从而获得服务器权限。在Web发展初期，随着动态脚本语言的发展和普及，以及早期工程师对安全问题认知不足导致很多”安全血案”的发生，至今仍然遗留下许多历史问题，比如PHP语言至今仍然无法从语言本身杜绝「文件包含漏洞」（<a href="http://developer.51cto.com/art/201104/255224.htm" target="_blank" rel="external">参见这里</a>），只能依靠工程师良好的代码规范和安全意识。<br><a id="more"></a></p>
+<p>伴随着Web2.0、社交网络、微博等一系列新型互联网产品的兴起，基于Web环境的互联网应用越来越广泛，Web攻击的手段也越来越多样，Web安全史上的一个重要里程碑是大约1999年发现的SQL注入攻击，之后的XSS，CSRF等攻击手段愈发强大，Web攻击的思路也从服务端转向了客户端，转向了浏览器和用户。</p>
+<p>在安全领域，一般用帽子的颜色来比喻黑客的善与恶，白帽子是指那些工作在反黑客领域的技术专家，这个群体是”善”的的象征；而黑帽子则是指那些利用黑客技术造成破坏甚至谋取私利造成犯罪的群体，他们是”恶”的代表。</p>
+<p>“白帽子”和”黑帽子”是两个完全对立的群体。对于黑帽子而言，他们只要找到系统的一个切入点就可以达到入侵破坏的目的，而白帽子必须将自己系统所有可能被突破的地方都设防，以保证系统的安全运行。</p>
+<p>这看起来好像是不公平的，但是安全世界里的规则就是这样，可能我们的网站1000处都布防的很好，考虑的很周到，但是只要有一个地方疏忽了，攻击者就会利用这个点进行突破，让我们另外的1000处努力白费。</p>
+<h1 id="u5E38_u89C1_u653B_u51FB_u65B9_u5F0F"><a href="#u5E38_u89C1_u653B_u51FB_u65B9_u5F0F" class="headerlink" title="常见攻击方式"></a>常见攻击方式</h1><p>一般说来，在Web安全领域，常见的攻击方式大概有以下几种：<br>1、SQL注入攻击<br>2、跨站脚本攻击 - XSS<br>3、跨站伪造请求攻击 - CSRF<br>4、文件上传漏洞攻击<br>5、分布式拒绝服务攻击 - DDOS   </p>
+<p>说个题外话，本来这篇文章一开始的标题叫做 「Web安全之常见攻击方法与防范」，我原本想把上面的这5种方法都全部写在一篇文章里，可是刚写完第一个SQL注入攻击的时候，就发现文章篇幅已经不短了，又很难再进行大幅度的精简，所以索性把Web安全分成一个系列，分多篇文章来呈现给大家，下面你看到的就是第一篇「Web安全之SQL注入攻击的技巧与防范」。</p>
+<h1 id="SQL_u6CE8_u5165_u5E38_u89C1_u653B_u51FB_u6280_u5DE7"><a href="#SQL_u6CE8_u5165_u5E38_u89C1_u653B_u51FB_u6280_u5DE7" class="headerlink" title="SQL注入常见攻击技巧"></a>SQL注入常见攻击技巧</h1><p>SQL注入攻击是Web安全史上的一个重要里程碑，它从1999年首次进入人们的视线，至今已经有十几年的历史了，虽然我们现在已经有了很全面的防范对策，但是它的威力仍然不容小觑，SQL注入攻击至今仍然是Web安全领域中的一个重要组成部分。</p>
+<p>以PHP+MySQL为例，让我们以一个Web网站中最基本的用户系统来做实例演示，看看SQL注入究竟是怎么发生的。</p>
+<p>1、创建一个名为demo的数据库：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="operator"><span class="keyword">CREATE</span> <span class="keyword">DATABASE</span>  <span class="string">`demo`</span> <span class="keyword">DEFAULT</span> <span class="built_in">CHARACTER</span> <span class="keyword">SET</span> utf8 <span class="keyword">COLLATE</span> utf8_general_ci;</span></span><br></pre></td></tr></table></figure>
+<p>2、创建一个名为user的数据表，并插入1条演示数据：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="operator"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span>  <span class="string">`demo`</span>.<span class="string">`user`</span> (</span><br><span class="line"><span class="string">`uid`</span> <span class="built_in">INT</span>( <span class="number">11</span> ) <span class="keyword">NOT</span> <span class="literal">NULL</span> AUTO_INCREMENT PRIMARY <span class="keyword">KEY</span> <span class="keyword">COMMENT</span>  <span class="string">'用户uid'</span>,</span><br><span class="line"><span class="string">`username`</span> <span class="built_in">VARCHAR</span>( <span class="number">20</span> ) <span class="keyword">NOT</span> <span class="literal">NULL</span> <span class="keyword">COMMENT</span>  <span class="string">'用户名'</span>,</span><br><span class="line"><span class="string">`password`</span> <span class="built_in">VARCHAR</span>( <span class="number">32</span> ) <span class="keyword">NOT</span> <span class="literal">NULL</span> <span class="keyword">COMMENT</span>  <span class="string">'用户密码'</span></span><br><span class="line">) <span class="keyword">ENGINE</span> = <span class="keyword">INNODB</span>;</span></span><br><span class="line"><span class="operator"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> <span class="string">`demo`</span>.<span class="string">`user`</span> (<span class="string">`uid`</span>, <span class="string">`username`</span>, <span class="string">`password`</span>) <span class="keyword">VALUES</span> (<span class="string">'1'</span>, <span class="string">'plhwin'</span>, <span class="keyword">MD5</span>(<span class="string">'123456'</span>));</span></span><br></pre></td></tr></table></figure>
+<h2 id="u5B9E_u4F8B_u4E00"><a href="#u5B9E_u4F8B_u4E00" class="headerlink" title="实例一"></a>实例一</h2><p>通过传入<code>username</code>参数，在页面打印出这个会员的详细信息，编写 <code>userinfo.php</code> 程序代码：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="preprocessor">&lt;?php</span></span><br><span class="line">header(<span class="string">'Content-type:text/html; charset=UTF-8'</span>);</span><br><span class="line"><span class="variable">$username</span> = <span class="keyword">isset</span>(<span class="variable">$_GET</span>[<span class="string">'username'</span>]) ? <span class="variable">$_GET</span>[<span class="string">'username'</span>] : <span class="string">''</span>;</span><br><span class="line"><span class="variable">$userinfo</span> = <span class="keyword">array</span>();</span><br><span class="line"><span class="keyword">if</span>(<span class="variable">$username</span>)&#123;</span><br><span class="line">	<span class="comment">//使用mysqli驱动连接demo数据库</span></span><br><span class="line">	<span class="variable">$mysqli</span> = <span class="keyword">new</span> mysqli(<span class="string">"localhost"</span>, <span class="string">"root"</span>, <span class="string">"root"</span>, <span class="string">'demo'</span>);</span><br><span class="line">	<span class="variable">$sql</span> = <span class="string">"SELECT uid,username FROM user WHERE username='&#123;$username&#125;'"</span>;</span><br><span class="line">	<span class="comment">//mysqli multi_query 支持执行多条MySQL语句</span></span><br><span class="line">	<span class="variable">$query</span> = <span class="variable">$mysqli</span>-&gt;multi_query(<span class="variable">$sql</span>);</span><br><span class="line">	<span class="keyword">if</span>(<span class="variable">$query</span>)&#123;</span><br><span class="line">		<span class="keyword">do</span> &#123;</span><br><span class="line">			<span class="variable">$result</span> = <span class="variable">$mysqli</span>-&gt;store_result();</span><br><span class="line">			<span class="keyword">while</span>(<span class="variable">$row</span> = <span class="variable">$result</span>-&gt;fetch_assoc())&#123;</span><br><span class="line">				<span class="variable">$userinfo</span>[] = <span class="variable">$row</span>;</span><br><span class="line">			&#125;</span><br><span class="line">			<span class="keyword">if</span>(!<span class="variable">$mysqli</span>-&gt;more_results())&#123;</span><br><span class="line">				<span class="keyword">break</span>;</span><br><span class="line">			&#125;</span><br><span class="line">		&#125; <span class="keyword">while</span> (<span class="variable">$mysqli</span>-&gt;next_result());</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">echo</span> <span class="string">'&lt;pre&gt;'</span>,print_r(<span class="variable">$userinfo</span>, <span class="number">1</span>),<span class="string">'&lt;/pre&gt;'</span>;</span><br></pre></td></tr></table></figure>
+<p>上面这个程序要实现的功能是根据浏览器传入的用户名参数，在页面上打印出这个用户的详细信息，程序写的这么复杂是因为我采用了mysqli的驱动，以便能使用到 <code>multi_query</code> 方法来支持同时执行多条SQL语句，这样能更好的说明SQL注入攻击的危害性。</p>
+<p>假设我们可以通过 <code>http://localhost/test/userinfo.php?username=plhwin</code> 这个URL来访问到具体某个会员的详情，正常情况下，如果浏览器里传入的username是合法的，那么SQL语句会执行：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="operator"><span class="keyword">SELECT</span> uid,username <span class="keyword">FROM</span> <span class="keyword">user</span> <span class="keyword">WHERE</span> username=<span class="string">'plhwin'</span></span></span><br></pre></td></tr></table></figure>
+<p>但是，如果用户在浏览器里把传入的username参数变为 <code>plhwin&#39;;SHOW TABLES-- hack</code>，也就是当URL变为 <code>http://localhost/test/userinfo.php?username=plhwin&#39;;SHOW TABLES-- hack</code> 的时候，此时我们程序实际执行的SQL语句变成了：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="operator"><span class="keyword">SELECT</span> uid,username <span class="keyword">FROM</span> <span class="keyword">user</span> <span class="keyword">WHERE</span> username=<span class="string">'plhwin'</span>;</span><span class="operator"><span class="keyword">SHOW</span> <span class="keyword">TABLES</span><span class="comment">-- hack'</span></span></span><br></pre></td></tr></table></figure>
+<p><em>注意：在MySQL中，最后连续的两个减号表示忽略此SQL减号后面的语句，我本机的MySQL版本号为5.6.12，目前几乎所有SQL注入实例都是直接采用两个减号结尾，但是实际测试，这个版本号的MySQL要求两个减号后面必须要有空格才能正常注入，而浏览器是会自动删除掉URL尾部空格的，所以我们的注入会在两个减号后面统一添加任意一个字符或单词，本篇文章的SQL注入实例统一以 <code>-- hack</code> 结尾。</em></p>
+<p>经过上面的SQL注入后，原本想要执行查询会员详情的SQL语句，此时还额外执行了 <code>SHOW TABLES;</code> 语句，这显然不是开发者的本意，此时可以在浏览器里看到页面的输出：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">Array</span></span><br><span class="line">(</span><br><span class="line">    [<span class="number">0</span>] =&gt; <span class="keyword">Array</span></span><br><span class="line">        (</span><br><span class="line">            [uid] =&gt; <span class="number">1</span></span><br><span class="line">            [username] =&gt; plhwin</span><br><span class="line">        )</span><br><span class="line"></span><br><span class="line">    [<span class="number">1</span>] =&gt; <span class="keyword">Array</span></span><br><span class="line">        (</span><br><span class="line">            [Tables_in_demo] =&gt; user</span><br><span class="line">        )</span><br><span class="line"></span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+<p>你能清晰的看到，除了会员的信息，数据库表的名字<code>user</code>也被打印在了页面上，如果作恶的黑客此时将参数换成 <code>plhwin&#39;;DROP TABLE user-- hack</code>，那将产生灾难性的严重结果，当你在浏览器中执行 <code>http://localhost/test/userinfo.php?username=plhwin&#39;;DROP TABLE user-- hack</code> 这个URL后，你会发现整个 <code>user</code> 数据表都消失不见了。</p>
+<p>通过上面的例子，大家已经认识到SQL注入攻击的危害性，但是仍然会有人心存疑问，MySQL默认驱动的<code>mysql_query</code>方法现在已经不支持多条语句同时执行了，大部分开发者怎么可能像上面的演示程序那样又麻烦又不安全。</p>
+<p>是的，在PHP程序中，MySQL是不允许在一个<code>mysql_query</code>中使用分号执行多SQL语句的，这使得很多开发者都认为MySQL本身就不允许多语句执行了，但实际上<a href="http://dev.mysql.com/doc/refman/4.1/en/c-api-multiple-queries.html" target="_blank" rel="external">MySQL早在4.1版本就允许多语句执行</a>，通过PHP的源代码，我们发现其实只是PHP语言自身限制了这种用法，具体情况大家可以看看这篇文章「<a href="http://zone.wooyun.org/content/50" target="_blank" rel="external">PHP+MySQL多语句执行</a>」。</p>
+<h2 id="u5B9E_u4F8B_u4E8C"><a href="#u5B9E_u4F8B_u4E8C" class="headerlink" title="实例二"></a>实例二</h2><p>如果系统不允许同时执行多条SQL语句，那么SQL注入攻击是不是就不再这么可怕呢？答案是否定的，我们仍然以上面的user数据表，用Web网站中常用的会员登录系统来做另外一个场景实例，编写程序<code>login.php</code>，代码如下：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="preprocessor">&lt;?php</span></span><br><span class="line"><span class="keyword">if</span>(<span class="variable">$_POST</span>)&#123;</span><br><span class="line">	<span class="variable">$link</span> = mysql_connect(<span class="string">"localhost"</span>, <span class="string">"root"</span>, <span class="string">"root"</span>);</span><br><span class="line">	mysql_select_db(<span class="string">'demo'</span>, <span class="variable">$link</span>);</span><br><span class="line">	<span class="variable">$username</span> = <span class="keyword">empty</span>(<span class="variable">$_POST</span>[<span class="string">'username'</span>]) ? <span class="string">''</span> : <span class="variable">$_POST</span>[<span class="string">'username'</span>];</span><br><span class="line">	<span class="variable">$password</span> = <span class="keyword">empty</span>(<span class="variable">$_POST</span>[<span class="string">'password'</span>]) ? <span class="string">''</span> : <span class="variable">$_POST</span>[<span class="string">'password'</span>];</span><br><span class="line">	<span class="variable">$md5password</span> = md5(<span class="variable">$password</span>);</span><br><span class="line">	<span class="variable">$sql</span> = <span class="string">"SELECT uid,username FROM user WHERE username='&#123;$username&#125;' AND password='&#123;$md5password&#125;'"</span>;</span><br><span class="line">	<span class="variable">$query</span> = mysql_query(<span class="variable">$sql</span>, <span class="variable">$link</span>);</span><br><span class="line">	<span class="variable">$userinfo</span> = mysql_fetch_array(<span class="variable">$query</span>, MYSQL_ASSOC);</span><br><span class="line">	<span class="keyword">if</span>(!<span class="keyword">empty</span>(<span class="variable">$userinfo</span>))&#123;</span><br><span class="line">		<span class="comment">//登录成功，打印出会员信息</span></span><br><span class="line">		<span class="keyword">echo</span> <span class="string">'&lt;pre&gt;'</span>,print_r(<span class="variable">$userinfo</span>, <span class="number">1</span>),<span class="string">'&lt;/pre&gt;'</span>;</span><br><span class="line">	&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">		<span class="keyword">echo</span> <span class="string">"用户名不存在或密码错误！"</span>;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="preprocessor">?&gt;</span></span><br><span class="line">&lt;!DOCTYPE html&gt;</span><br><span class="line">&lt;html&gt;</span><br><span class="line">&lt;head&gt;</span><br><span class="line">	&lt;meta charset=<span class="string">"utf-8"</span>&gt;</span><br><span class="line">	&lt;title&gt;Web登录系统SQL注入实例&lt;/title&gt;</span><br><span class="line">&lt;/head&gt;</span><br><span class="line">&lt;body&gt;</span><br><span class="line">	&lt;form name=<span class="string">"LOGIN_FORM"</span> method=<span class="string">"post"</span> action=<span class="string">""</span>&gt;</span><br><span class="line">	登录帐号: &lt;input type=<span class="string">"text"</span> name=<span class="string">"username"</span> value=<span class="string">""</span> size=<span class="number">30</span> /&gt;&lt;br /&gt;&lt;br /&gt;</span><br><span class="line">	登录密码: &lt;input type=<span class="string">"text"</span> name=<span class="string">"password"</span> value=<span class="string">""</span> size=<span class="number">30</span> /&gt;&lt;br /&gt;&lt;br /&gt;</span><br><span class="line">	&lt;input type=<span class="string">"submit"</span> value=<span class="string">"登录"</span> /&gt;</span><br><span class="line">	&lt;/form&gt;</span><br><span class="line">&lt;/body&gt;</span><br><span class="line">&lt;/html&gt;</span><br></pre></td></tr></table></figure>
+<p>此时如果输入正确的用户名 <code>plhwin</code> 和密码 <code>123456</code>，执行的SQL语句为：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="operator"><span class="keyword">SELECT</span> uid,username <span class="keyword">FROM</span> <span class="keyword">user</span> <span class="keyword">WHERE</span> username=<span class="string">'plhwin'</span> <span class="keyword">AND</span> <span class="keyword">password</span>=<span class="string">'e10adc3949ba59abbe56e057f20f883e'</span></span></span><br></pre></td></tr></table></figure>
+<p>上面语句没有任何问题，可以看到页面打印出了登录成功后的会员信息，但如果有捣蛋鬼输入的用户名为 <code>plhwin&#39; AND 1=1-- hack</code>，密码随意输入，比如<code>aaaaaa</code>，那么拼接之后的SQL查询语句就变成了如下内容：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="operator"><span class="keyword">SELECT</span> uid,username <span class="keyword">FROM</span> <span class="keyword">user</span> <span class="keyword">WHERE</span> username=<span class="string">'plhwin'</span> <span class="keyword">AND</span> <span class="number">1</span>=<span class="number">1</span><span class="comment">-- hack' AND password='0b4e7a0e5fe84ad35fb5f95b9ceeac79'</span></span></span><br></pre></td></tr></table></figure>
+<p>执行上面的SQL语句，因为<code>1=1</code>是永远成立的条件，这意味着黑客只需要知道别人的会员名，无需知道密码就能顺利登录到系统。</p>
+<h1 id="u5982_u4F55_u786E_u5B9ASQL_u6CE8_u5165_u6F0F_u6D1E"><a href="#u5982_u4F55_u786E_u5B9ASQL_u6CE8_u5165_u6F0F_u6D1E" class="headerlink" title="如何确定SQL注入漏洞"></a>如何确定SQL注入漏洞</h1><p>通过以上的实例，我们仍然还会有疑问：黑客并不知道我们程序代码的逻辑和SQL语句的写法，他是如何确定一个网站是否存在SQL注入漏洞呢？一般说来有以下2种途径：</p>
+<h2 id="1_u3001_u9519_u8BEF_u63D0_u793A"><a href="#1_u3001_u9519_u8BEF_u63D0_u793A" class="headerlink" title="1、错误提示"></a>1、错误提示</h2><p>如果目标Web网站开启了错误显示，攻击者就可以通过反复调整发送的参数、查看页面打印的错误信息，推测出Web网站使用的数据库和开发语言等重要信息。</p>
+<h2 id="2_u3001_u76F2_u6CE8"><a href="#2_u3001_u76F2_u6CE8" class="headerlink" title="2、盲注"></a>2、盲注</h2><p>除非运维人员疏忽，否则大部分的Web运营网站应该都关闭了错误提示信息，此时攻击者一般会采用盲注的技巧来进行反复的尝试判断。 仍然以上面的数据表user为例，我们之前的查看会员详情页面的url地址为<code>userinfo.php?username=plhwin</code>，此时黑客分别访问<code>userinfo.php?username=plhwin&#39; AND 1=1-- hack</code>和<code>userinfo.php?username=plhwin&#39; AND 1=2-- hack</code>，如果前者访问能返回正常的信息而后者不能，就基本可以判断此网站存在SQL注入漏洞，因为后者的<code>1=2</code>这个表达式永远不成立，所以即使username传入了正确的参数也无法通过，由此可以推断这个页面存在SQL注入漏洞，并且可以通过<code>username</code>参数进行注入。</p>
+<h1 id="u5982_u4F55_u9632_u5FA1SQL_u6CE8_u5165"><a href="#u5982_u4F55_u9632_u5FA1SQL_u6CE8_u5165" class="headerlink" title="如何防御SQL注入"></a>如何防御SQL注入</h1><p>对于服务器配置层面的防范，应该保证生产环境的Webserver是关闭错误信息的，比如PHP在生产环境的配置文件php.ini中的display_errors应该设置为Off，这样就关闭了错误提示，下面我们更多的从编码的角度来看看如何防范SQL注入。</p>
+<p>上面用两个实例分析了SQL注入攻击的技巧，可以看到，但凡有SQL注入漏洞的程序，都是因为程序要接受来自客户端用户输入的变量或URL传递的参数，并且这个变量或参数是组成SQL语句的一部分，对于用户输入的内容或传递的参数，我们应该要时刻保持警惕，这是安全领域里的「外部数据不可信任」的原则，纵观Web安全领域的各种攻击方式，大多数都是因为开发者违反了这个原则而导致的，所以自然能想到的，就是从变量的检测、过滤、验证下手，确保变量是开发者所预想的。</p>
+<h2 id="1_u3001_u68C0_u67E5_u53D8_u91CF_u6570_u636E_u7C7B_u578B_u548C_u683C_u5F0F"><a href="#1_u3001_u68C0_u67E5_u53D8_u91CF_u6570_u636E_u7C7B_u578B_u548C_u683C_u5F0F" class="headerlink" title="1、检查变量数据类型和格式"></a>1、检查变量数据类型和格式</h2><p>如果你的SQL语句是类似<code>where id={$id}</code>这种形式，数据库里所有的id都是数字，那么就应该在SQL被执行前，检查确保变量id是int类型；如果是接受邮箱，那就应该检查并严格确保变量一定是邮箱的格式，其他的类型比如日期、时间等也是一个道理。总结起来：<strong>只要是有固定格式的变量，在SQL语句执行前，应该严格按照固定格式去检查，确保变量是我们预想的格式</strong>，这样很大程度上可以避免SQL注入攻击。</p>
+<p>比如，我们前面接受<code>username</code>参数例子中，我们的产品设计应该是在用户注册的一开始，就有一个用户名的规则，比如<code>5-20个字符，只能由大小写字母、数字以及一些安全的符号组成，不包含特殊字符</code>。此时我们应该有一个<code>check_username</code>的函数来进行统一的检查。不过，仍然有很多例外情况并不能应用到这一准则，比如文章发布系统，评论系统等必须要允许用户提交任意字符串的场景，这就需要采用过滤等其他方案了。</p>
+<h2 id="2_u3001_u8FC7_u6EE4_u7279_u6B8A_u7B26_u53F7"><a href="#2_u3001_u8FC7_u6EE4_u7279_u6B8A_u7B26_u53F7" class="headerlink" title="2、过滤特殊符号"></a>2、过滤特殊符号</h2><p>对于无法确定固定格式的变量，一定要进行特殊符号过滤或转义处理。以PHP为例，通常是采用<code>addslashes</code>函数，它会在指定的预定义字符前添加反斜杠转义，这些预定义的字符是：<code>单引号 (&#39;) 双引号 (&quot;) 反斜杠 (\) NULL</code>。</p>
+<p>来看2条SQL语句：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$uid</span> = <span class="keyword">isset</span>(<span class="variable">$_GET</span>[<span class="string">'uid'</span>]) ? <span class="variable">$_GET</span>[<span class="string">'uid'</span>] : <span class="number">0</span>;</span><br><span class="line"><span class="variable">$uid</span> = addslashes(uid);</span><br><span class="line"><span class="variable">$sql</span> = <span class="string">"SELECT uid,username FROM user WHERE uid='&#123;$uid&#125;'"</span>;</span><br></pre></td></tr></table></figure>
+<p>以及</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$uid</span> = <span class="keyword">isset</span>(<span class="variable">$_GET</span>[<span class="string">'uid'</span>]) ? <span class="variable">$_GET</span>[<span class="string">'uid'</span>] : <span class="number">0</span>;</span><br><span class="line"><span class="variable">$uid</span> = addslashes(uid);</span><br><span class="line"><span class="variable">$sql</span> = <span class="string">"SELECT uid,username FROM user WHERE uid=&#123;$uid&#125;"</span>;</span><br></pre></td></tr></table></figure>
+<p>上面两个查询语句都经过了php的addslashes函数过滤转义，但在安全性上却大不相同，在MySQL中，对于int类型字段的条件查询，上面个语句的查询效果完全一样，由于第一句SQL的变量被单引号包含起来，SQL注入的时候，黑客面临的首要问题是必须要先闭合前面的单引号，这样才能使后面的语句作为SQL执行，并且还要注释掉原SQL语句中的后面的单引号，这样才可以成功注入，由于代码里使用了addslashes函数，黑客的攻击会无从下手，但第二句没有用引号包含变量，那黑客也不用考虑去闭合、注释，所以即便同样采用addslashes转义，也还是存在SQL攻击漏洞。</p>
+<p>对于PHP程序+MySQL构架的程序，在动态的SQL语句中，使用单引号把变量包含起来配合<code>addslashes</code>函数是应对SQL注入攻击的有效手段，但这做的还不够，像上面的2条SQL语句，根据「检查数据类型」的原则，uid都应该经过<code>intval</code>函数格式为int型，这样不仅能有效避免第二条语句的SQL注入漏洞，还能使得程序看起来更自然，尤其是在NoSQL(如MongoDB)中，变量类型一定要与字段类型相匹配才可以。</p>
+<p>从上面可以看出，第二个SQL语句是有漏洞的，不过由于使用了addslashes函数，你会发现黑客的攻击语句也存在不能使用特殊符号的条件限制，类似<code>where username=&#39;plhwin&#39;</code>这样的攻击语句是没法执行的，但是黑客可以将字符串转为16进制编码数据或使用<code>char</code>函数进行转化，同样能达到相同的目的，如果对这部分内容感兴趣，可以<a href="http://cbb.sjtu.edu.cn/course/database/lab8.htm" target="_blank" rel="external">点击这里查看</a>。而且由于SQL保留关键字，如「HAVING」、「ORDER BY」的存在，即使是基于黑白名单的过滤方法仍然会有或多或少问题，那么是否还有其他方法来防御SQL注入呢？</p>
+<h2 id="3_u3001_u7ED1_u5B9A_u53D8_u91CF_uFF0C_u4F7F_u7528_u9884_u7F16_u8BD1_u8BED_u53E5"><a href="#3_u3001_u7ED1_u5B9A_u53D8_u91CF_uFF0C_u4F7F_u7528_u9884_u7F16_u8BD1_u8BED_u53E5" class="headerlink" title="3、绑定变量，使用预编译语句"></a>3、绑定变量，使用预编译语句</h2><p>MySQL的<code>mysqli</code>驱动提供了预编译语句的支持，不同的程序语言，都分别有使用预编译语句的方法，我们这里仍然以PHP为例，编写<code>userinfo2.php</code>代码：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="preprocessor">&lt;?php</span></span><br><span class="line">header(<span class="string">'Content-type:text/html; charset=UTF-8'</span>);</span><br><span class="line"><span class="variable">$username</span> = <span class="keyword">isset</span>(<span class="variable">$_GET</span>[<span class="string">'username'</span>]) ? <span class="variable">$_GET</span>[<span class="string">'username'</span>] : <span class="string">''</span>;</span><br><span class="line"><span class="variable">$userinfo</span> = <span class="keyword">array</span>();</span><br><span class="line"><span class="keyword">if</span>(<span class="variable">$username</span>)&#123;</span><br><span class="line">	<span class="comment">//使用mysqli驱动连接demo数据库</span></span><br><span class="line">	<span class="variable">$mysqli</span> = <span class="keyword">new</span> mysqli(<span class="string">"localhost"</span>, <span class="string">"root"</span>, <span class="string">"root"</span>, <span class="string">'demo'</span>);</span><br><span class="line">	<span class="comment">//使用问号替代变量位置</span></span><br><span class="line">	<span class="variable">$sql</span> = <span class="string">"SELECT uid,username FROM user WHERE username=?"</span>;</span><br><span class="line">	<span class="variable">$stmt</span> = <span class="variable">$mysqli</span>-&gt;prepare(<span class="variable">$sql</span>);</span><br><span class="line">	<span class="comment">//绑定变量</span></span><br><span class="line">	<span class="variable">$stmt</span>-&gt;bind_param(<span class="string">"s"</span>, <span class="variable">$username</span>);</span><br><span class="line">	<span class="variable">$stmt</span>-&gt;execute();</span><br><span class="line">	<span class="variable">$stmt</span>-&gt;bind_result(<span class="variable">$uid</span>, <span class="variable">$username</span>);</span><br><span class="line">	<span class="keyword">while</span> (<span class="variable">$stmt</span>-&gt;fetch()) &#123;</span><br><span class="line">	    <span class="variable">$row</span> = <span class="keyword">array</span>();</span><br><span class="line">	    <span class="variable">$row</span>[<span class="string">'uid'</span>] = <span class="variable">$uid</span>;</span><br><span class="line">	    <span class="variable">$row</span>[<span class="string">'username'</span>] = <span class="variable">$username</span>;</span><br><span class="line">	    <span class="variable">$userinfo</span>[] = <span class="variable">$row</span>;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">echo</span> <span class="string">'&lt;pre&gt;'</span>,print_r(<span class="variable">$userinfo</span>, <span class="number">1</span>),<span class="string">'&lt;/pre&gt;'</span>;</span><br></pre></td></tr></table></figure>
+<p>从上面的代码可以看到，我们程序里并没有使用<code>addslashes</code>函数，但是浏览器里运行 <code>http://localhost/test/userinfo2.php?username=plhwin&#39; AND 1=1-- hack</code>里得不到任何结果，说明SQL漏洞在这个程序里并不存在。</p>
+<p>实际上，绑定变量使用预编译语句是预防SQL注入的最佳方式，使用预编译的SQL语句语义不会发生改变，在SQL语句中，变量用问号<code>?</code>表示，黑客即使本事再大，也无法改变SQL语句的结构，像上面例子中，username变量传递的<code>plhwin&#39; AND 1=1-- hack</code>参数，也只会当作username字符串来解释查询，从根本上杜绝了SQL注入攻击的发生。</p>
+<h1 id="u6570_u636E_u5E93_u4FE1_u606F_u52A0_u5BC6_u5B89_u5168"><a href="#u6570_u636E_u5E93_u4FE1_u606F_u52A0_u5BC6_u5B89_u5168" class="headerlink" title="数据库信息加密安全"></a>数据库信息加密安全</h1><p>相信大家都还对2011年爆出的CSDN拖库事件记忆犹新，这件事情导致CSDN处在风口浪尖被大家痛骂的原因就在于他们竟然明文存储用户的密码，这引发了科技界对用户信息安全尤其是密码安全的强烈关注，我们在防范SQL注入的发生的同时，也应该未雨绸缪，说不定下一个被拖库的就是你，谁知道呢。</p>
+<p>在Web开发中，传统的加解密大致可以分为三种:</p>
+<p>1、对称加密：即加密方和解密方都使用相同的加密算法和密钥，这种方案的密钥的保存非常关键，因为算法是公开的，而密钥是保密的，一旦密匙泄露，黑客仍然可以轻易解密。常见的对称加密算法有：<code>AES</code>、<code>DES</code>等。</p>
+<p>2、非对称加密：即使用不同的密钥来进行加解密，密钥被分为公钥和私钥，用私钥加密的数据必须使用公钥来解密，同样用公钥加密的数据必须用对应的私钥来解密，常见的非对称加密算法有：<code>RSA</code>等。</p>
+<p>3、不可逆加密：利用哈希算法使数据加密之后无法解密回原数据，这样的哈希算法常用的有：<code>md5</code>、<code>SHA-1</code>等。</p>
+<p>在我们上面登录系统的示例代码中，<code>$md5password = md5($password);</code>从这句代码可以看到采用了md5的不可逆加密算法来存储密码，这也是多年来业界常用的密码加密算法，但是这仍然不安全。为什么呢？</p>
+<p>这是因为md5加密有一个特点：同样的字符串经过md5哈希计算之后生成的加密字符串也是相同的，由于业界采用这种加密的方式由来已久，黑客们也准备了自己强大的md5彩虹表来逆向匹配加密前的字符串，这种用于逆向反推MD5加密的彩虹表在互联网上随处可见，在Google里使用<code>md5 解密</code>作为关键词搜索，一下就能找到<a href="http://www.cmd5.com/" target="_blank" rel="external">md5在线破解网站</a>，把我们插入用户数据时候的MD5加密字符串<code>e10adc3949ba59abbe56e057f20f883e</code>填入进去，瞬间就能得到加密前的密码：<code>123456</code>。当然也并不是每一个都能成功，但可以肯定的是，这个彩虹表会越来越完善。</p>
+<p>所以，我们有迫切的需求采用更好的方法对密码数据进行不可逆加密，通常的做法是为每个用户确定不同的密码加盐（salt）后，再混合用户的真实密码进行md5加密，如以下代码：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="preprocessor">&lt;?php</span></span><br><span class="line"><span class="comment">//用户注册时候设置的password</span></span><br><span class="line"><span class="variable">$password</span> = <span class="variable">$_POST</span>[<span class="string">'password'</span>];</span><br><span class="line"><span class="comment">//md5加密，传统做法直接将加密后的字符串存入数据库，但这不够，我们继续改良</span></span><br><span class="line"><span class="variable">$passwordmd5</span> = md5(<span class="variable">$password</span>);</span><br><span class="line"><span class="comment">//为用户生成不同的密码盐，算法可以根据自己业务的需要而不同</span></span><br><span class="line"><span class="variable">$salt</span> = substr(uniqid(rand()), -<span class="number">6</span>);</span><br><span class="line"><span class="comment">//新的加密字符串包含了密码盐</span></span><br><span class="line"><span class="variable">$passwordmd5</span> = md5(<span class="variable">$passwordmd5</span>.<span class="variable">$salt</span>);</span><br></pre></td></tr></table></figure>
+<h1 id="u5C0F_u7ED3"><a href="#u5C0F_u7ED3" class="headerlink" title="小结"></a>小结</h1><p>1、不要随意开启生产环境中Webserver的错误显示。<br>2、永远不要信任来自用户端的变量输入，有固定格式的变量一定要严格检查对应的格式，没有固定格式的变量需要对引号等特殊字符进行必要的过滤转义。<br>3、使用预编译绑定变量的SQL语句。<br>4、做好数据库帐号权限管理。<br>5、严格加密处理用户的机密信息。</p>
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/SQL注入/" rel="tag">#SQL注入</a>
+          
+            <a href="/tags/Web安全/" rel="tag">#Web安全</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2014/05/28/nodejs-socketio/" rel="next" title="使用Node.js+Socket.IO搭建WebSocket实时应用">
+                <i class="fa fa-chevron-left"></i> 使用Node.js+Socket.IO搭建WebSocket实时应用
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2014/07/28/smartisan-t1/" rel="prev" title="Smartisan T1，锤子手机20天评测报告">
+                Smartisan T1，锤子手机20天评测报告 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="uyan_frame"></div>
+      <!-- UY BEGIN -->
+      <script type="text/javascript">
+      var WEBHOST = "http://www.plhwin.com"
+      var PAGEURL = "http://www.plhwin.com/2014/06/13/web-security-sql/index.html";
+      PAGEURL = PAGEURL.replace(/index\.html$/, "");
+      var uyan_config = {
+        du: WEBHOST,
+        su: PAGEURL
+      };
+      </script>
+      <script type="text/javascript" src="http://v2.uyan.cc/code/uyan.js?uid=1583460"></script>
+      <!-- UY END -->
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.jpg"
+               alt="彼得潘" />
+          <p class="site-author-name" itemprop="name">彼得潘</p>
+          <p class="site-description motion-element" itemprop="description">每个人都应该为梦想付出全部</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">3</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+          
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">3</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">13</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/plhwin" target="_blank">
+                  
+                    <i class="fa fa-github"></i> Github
+                  
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://twitter.com/plhwin" target="_blank">
+                  
+                    <i class="fa fa-twitter"></i> Twitter
+                  
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/panlianghu" target="_blank">
+                  
+                    <i class="fa fa-weibo"></i> 微博
+                  
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://www.zhihu.com/people/plhwin" target="_blank">
+                  
+                    <i class="fa fa-globe"></i> 知乎
+                  
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc-indicator-top post-toc-indicator">
+            <i class="fa fa-angle-double-up"></i>
+          </div>
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#u5E38_u89C1_u653B_u51FB_u65B9_u5F0F"><span class="nav-number">1.</span> <span class="nav-text">常见攻击方式</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#SQL_u6CE8_u5165_u5E38_u89C1_u653B_u51FB_u6280_u5DE7"><span class="nav-number">2.</span> <span class="nav-text">SQL注入常见攻击技巧</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#u5B9E_u4F8B_u4E00"><span class="nav-number">2.1.</span> <span class="nav-text">实例一</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#u5B9E_u4F8B_u4E8C"><span class="nav-number">2.2.</span> <span class="nav-text">实例二</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#u5982_u4F55_u786E_u5B9ASQL_u6CE8_u5165_u6F0F_u6D1E"><span class="nav-number">3.</span> <span class="nav-text">如何确定SQL注入漏洞</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#1_u3001_u9519_u8BEF_u63D0_u793A"><span class="nav-number">3.1.</span> <span class="nav-text">1、错误提示</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2_u3001_u76F2_u6CE8"><span class="nav-number">3.2.</span> <span class="nav-text">2、盲注</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#u5982_u4F55_u9632_u5FA1SQL_u6CE8_u5165"><span class="nav-number">4.</span> <span class="nav-text">如何防御SQL注入</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#1_u3001_u68C0_u67E5_u53D8_u91CF_u6570_u636E_u7C7B_u578B_u548C_u683C_u5F0F"><span class="nav-number">4.1.</span> <span class="nav-text">1、检查变量数据类型和格式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2_u3001_u8FC7_u6EE4_u7279_u6B8A_u7B26_u53F7"><span class="nav-number">4.2.</span> <span class="nav-text">2、过滤特殊符号</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3_u3001_u7ED1_u5B9A_u53D8_u91CF_uFF0C_u4F7F_u7528_u9884_u7F16_u8BD1_u8BED_u53E5"><span class="nav-number">4.3.</span> <span class="nav-text">3、绑定变量，使用预编译语句</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#u6570_u636E_u5E93_u4FE1_u606F_u52A0_u5BC6_u5B89_u5168"><span class="nav-number">5.</span> <span class="nav-text">数据库信息加密安全</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#u5C0F_u7ED3"><span class="nav-number">6.</span> <span class="nav-text">小结</span></a></li></ol></div>
+            
+          </div>
+          <div class="post-toc-indicator-bottom post-toc-indicator">
+            <i class="fa fa-angle-double-down"></i>
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2014 - 
+  <span itemprop="copyrightYear">2016</span>
+  By
+  <span class="author" itemprop="copyrightHolder">彼得潘</span>
+</div>
+
+<div class="powered-by">
+  Powered by <a target="_blank" class="theme-link" href="http://hexo.io">Hexo</a>
+</div>
+
+<div class="theme-info">
+  Theme By 
+  <a target="_blank" class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    Next
+  </a>
+</div>
+
+
+
+      </div>
+    </footer>
+
+    <div class="back-to-top"></div>
+  </div>
+
+  
+
+
+  
+
+
+
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  <script type="text/javascript" src="/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js"></script>
+
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js"></script>
+
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=0.5.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=0.5.0"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=0.5.0"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=0.5.0"></script>
+
+
+
+  
+  
+<script type="text/javascript" src="/js/src/scrollspy.js?v=0.5.0"></script>
+
+<script type="text/javascript" id="sidebar.toc.highlight">
+  $(document).ready(function () {
+    var tocSelector = '.post-toc';
+    var $tocSelector = $(tocSelector);
+    var activeCurrentSelector = '.active-current';
+
+    $tocSelector
+      .on('activate.bs.scrollspy', function () {
+        var $currentActiveElement = $(tocSelector + ' .active').last();
+
+        removeCurrentActiveClass();
+        $currentActiveElement.addClass('active-current');
+
+        $tocSelector[0].scrollTop = $currentActiveElement.position().top;
+      })
+      .on('clear.bs.scrollspy', function () {
+        removeCurrentActiveClass();
+      });
+
+    function removeCurrentActiveClass () {
+      $(tocSelector + ' ' + activeCurrentSelector)
+        .removeClass(activeCurrentSelector.substring(1));
+    }
+
+    function processTOC () {
+      getTOCMaxHeight();
+      toggleTOCOverflowIndicators();
+    }
+
+    function getTOCMaxHeight () {
+      var height = $('.sidebar').height() -
+                   $tocSelector.position().top -
+                   $('.post-toc-indicator-bottom').height();
+
+      $tocSelector.css('height', height);
+
+      return height;
+    }
+
+    function toggleTOCOverflowIndicators () {
+      tocOverflowIndicator(
+        '.post-toc-indicator-top',
+        $tocSelector.scrollTop() > 0 ? 'show' : 'hide'
+      );
+
+      tocOverflowIndicator(
+        '.post-toc-indicator-bottom',
+        $tocSelector.scrollTop() >= $tocSelector.find('ol').height() - $tocSelector.height() ? 'hide' : 'show'
+      )
+    }
+
+    $(document).on('sidebar.motion.complete', function () {
+      processTOC();
+    });
+
+    $('body').scrollspy({ target: tocSelector });
+    $(window).on('resize', function () {
+      if ( $('.sidebar').hasClass('sidebar-active') ) {
+        processTOC();
+      }
+    });
+
+    onScroll($tocSelector);
+
+    function onScroll (element) {
+      element.on('mousewheel DOMMouseScroll', function (event) {
+          var oe = event.originalEvent;
+          var delta = oe.wheelDelta || -oe.detail;
+
+          this.scrollTop += ( delta < 0 ? 1 : -1 ) * 30;
+          event.preventDefault();
+
+          toggleTOCOverflowIndicators();
+      });
+    }
+
+    function tocOverflowIndicator (indicator, action) {
+      var $indicator = $(indicator);
+      var opacity = action === 'show' ? 1 : 0;
+      $indicator.velocity ?
+        $indicator.velocity('stop').velocity({
+          opacity: opacity
+        }, { duration: 100 }) :
+        $indicator.stop().animate({
+          opacity: opacity
+        }, 100);
+    }
+
+  });
+</script>
+
+<script type="text/javascript" id="sidebar.nav">
+  $(document).ready(function () {
+    var html = $('html');
+    var TAB_ANIMATE_DURATION = 200;
+    var hasVelocity = $.isFunction(html.velocity);
+
+    $('.sidebar-nav li').on('click', function () {
+      var item = $(this);
+      var activeTabClassName = 'sidebar-nav-active';
+      var activePanelClassName = 'sidebar-panel-active';
+      if (item.hasClass(activeTabClassName)) {
+        return;
+      }
+
+      var currentTarget = $('.' + activePanelClassName);
+      var target = $('.' + item.data('target'));
+
+      hasVelocity ?
+        currentTarget.velocity('transition.slideUpOut', TAB_ANIMATE_DURATION, function () {
+          target
+            .velocity('stop')
+            .velocity('transition.slideDownIn', TAB_ANIMATE_DURATION)
+            .addClass(activePanelClassName);
+        }) :
+        currentTarget.animate({ opacity: 0 }, TAB_ANIMATE_DURATION, function () {
+          currentTarget.hide();
+          target
+            .stop()
+            .css({'opacity': 0, 'display': 'block'})
+            .animate({ opacity: 1 }, TAB_ANIMATE_DURATION, function () {
+              currentTarget.removeClass(activePanelClassName);
+              target.addClass(activePanelClassName);
+            });
+        });
+
+      item.siblings().removeClass(activeTabClassName);
+      item.addClass(activeTabClassName);
+    });
+
+    $('.post-toc a').on('click', function (e) {
+      e.preventDefault();
+      var targetSelector = NexT.utils.escapeSelector(this.getAttribute('href'));
+      var offset = $(targetSelector).offset().top;
+      hasVelocity ?
+        html.velocity('stop').velocity('scroll', {
+          offset: offset  + 'px',
+          mobileHA: false
+        }) :
+        $('html, body').stop().animate({
+          scrollTop: offset
+        }, 500);
+    });
+
+    // Expand sidebar on post detail page by default, when post has a toc.
+    NexT.motion.middleWares.sidebar = function () {
+      var $tocContent = $('.post-toc-content');
+
+      if (CONFIG.sidebar === 'post') {
+        if ($tocContent.length > 0 && $tocContent.html().trim().length > 0) {
+          NexT.utils.displaySidebar();
+        }
+      }
+    };
+  });
+</script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=0.5.0"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+  
+  
+
+  
+  
+
+
+</body>
+</html>

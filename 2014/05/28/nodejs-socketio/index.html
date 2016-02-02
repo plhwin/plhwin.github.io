@@ -1,0 +1,765 @@
+<!doctype html>
+<html class="theme-next pisces">
+<head>
+    <meta charset="UTF-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+    
+    <meta http-equiv="Cache-Control" content="no-transform" />
+    <meta http-equiv="Cache-Control" content="no-siteapp" />
+    <meta name="google-site-verification" content="RQjYbfNUu52PyjtXMobH8lQVJVT6vcSrm5StMKudtzE" />
+    <meta name="baidu-site-verification" content="xfiIYXR4dF" />
+    <meta name="uyan_auth" content="57a2dd9b3d" />
+    
+    <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css"/>
+    
+    <link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+    <link href="/css/main.css?v=0.5.0" rel="stylesheet" type="text/css" />
+    
+    <meta name="keywords" content="Node.js,NodeJS,Realtime,Socket.IO,WebSocket,消息推送,网络编程," />
+    
+    <link rel="alternate" href="/atom.xml" title="潘良虎的随想录" type="application/atom+xml" />
+    <link rel="shortcut icon" type="image/x-icon" href="/images/favicon.ico?v=0.5.0" />
+    
+    <meta name="description" content="Web领域的实时推送技术，也被称作Realtime技术。这种技术要达到的目的是让用户不需要刷新浏览器就可以获得实时更新。它有着广泛的应用场景，比如在线聊天室、在线客服系统、评论系统、WebIM等。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="使用Node.js+Socket.IO搭建WebSocket实时应用">
+<meta property="og:url" content="http://www.plhwin.com/2014/05/28/nodejs-socketio/index.html">
+<meta property="og:site_name" content="潘良虎的随想录">
+<meta property="og:description" content="Web领域的实时推送技术，也被称作Realtime技术。这种技术要达到的目的是让用户不需要刷新浏览器就可以获得实时更新。它有着广泛的应用场景，比如在线聊天室、在线客服系统、评论系统、WebIM等。">
+<meta property="og:image" content="http://static.plhwin.com/images/nodejs-socketio/demo.jpg">
+<meta property="og:image" content="http://static.plhwin.com/images/nodejs-socketio/websocket-header.jpg">
+<meta property="og:image" content="http://static.plhwin.com/images/nodejs-socketio/welcome-realtime-server.jpg">
+<meta property="og:updated_time" content="2016-02-02T11:00:58.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="使用Node.js+Socket.IO搭建WebSocket实时应用">
+<meta name="twitter:description" content="Web领域的实时推送技术，也被称作Realtime技术。这种技术要达到的目的是让用户不需要刷新浏览器就可以获得实时更新。它有着广泛的应用场景，比如在线聊天室、在线客服系统、评论系统、WebIM等。">
+    
+    <script type="text/javascript" id="hexo.configuration">
+      var NexT = window.NexT || {};
+      var CONFIG = {
+        
+        scheme: 'Pisces',
+        sidebar: {"position":"right","display":"always"},
+        fancybox: true,
+        motion: false
+      };
+    </script>
+
+    <title> 使用Node.js+Socket.IO搭建WebSocket实时应用 | 潘良虎的随想录 </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?27f391e757316463639283a690e7e448";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-right page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">潘良虎的随想录</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle">技术与创业，科技与人文</p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu ">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-home fa-fw"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-th fa-fw"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-tags fa-fw"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-archive fa-fw"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+      
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                使用Node.js+Socket.IO搭建WebSocket实时应用
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-original-tag">原创</span>
+
+          <span class="post-time">
+            <span class="post-meta-item-text"> </span>
+            <time itemprop="dateCreated" datetime="2014-05-28T16:37:39+08:00" content="2014-05-28">
+              2014-05-28
+            </time>
+          </span>
+
+          <span class="post-author">彼得潘</span>
+
+          
+            <span class="post-category" >
+              <span class="post-meta-item-text"> </span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/编程/" itemprop="url" rel="index">
+                    <span itemprop="name">编程</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+
+          
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>Web领域的实时推送技术，也被称作Realtime技术。这种技术要达到的目的是让用户不需要刷新浏览器就可以获得实时更新。它有着广泛的应用场景，比如在线聊天室、在线客服系统、评论系统、WebIM等。<br><a id="more"></a></p>
+<p><img src="http://static.plhwin.com/images/nodejs-socketio/demo.jpg" alt=""></p>
+<h1 id="WebSocket_u7B80_u4ECB"><a href="#WebSocket_u7B80_u4ECB" class="headerlink" title="WebSocket简介"></a>WebSocket简介</h1><p>谈到Web实时推送，就不得不说WebSocket。在WebSocket出现之前，很多网站为了实现实时推送技术，通常采用的方案是轮询(Polling)和Comet技术，Comet又可细分为两种实现方式，一种是长轮询机制，一种称为流技术，这两种方式实际上是对轮询技术的改进，这些方案带来很明显的缺点，需要由浏览器对服务器发出HTTP request，大量消耗服务器带宽和资源。面对这种状况，HTML5定义了WebSocket协议，能更好的节省服务器资源和带宽并实现真正意义上的实时推送。</p>
+<p>WebSocket协议本质上是一个基于TCP的协议，它由通信协议和编程API组成，WebSocket能够在浏览器和服务器之间建立双向连接，以基于事件的方式，赋予浏览器实时通信能力。既然是双向通信，就意味着服务器端和客户端可以同时发送并响应请求，而不再像HTTP的请求和响应。</p>
+<p>为了建立一个WebSocket连接，客户端浏览器首先要向服务器发起一个HTTP请求，这个请求和通常的HTTP请求不同，包含了一些附加头信息，其中附加头信息”Upgrade: WebSocket”表明这是一个申请协议升级的HTTP请求，服务器端解析这些附加的头信息然后产生应答信息返回给客户端，客户端和服务器端的WebSocket连接就建立起来了，双方就可以通过这个连接通道自由的传递信息，并且这个连接会持续存在直到客户端或者服务器端的某一方主动的关闭连接。</p>
+<p>一个典型WebSocket客户端请求头：<br><img src="http://static.plhwin.com/images/nodejs-socketio/websocket-header.jpg" alt=""></p>
+<p>前面讲到WebSocket是HTML5中新增的一种通信协议，这意味着一部分老版本浏览器（主要是IE10以下版本）并不具备这个功能， <a href="http://tongji.baidu.com/data/browser" target="_blank" rel="external">通过百度统计的公开数据显示</a>，IE8目前仍以33%的市场份额占据榜首，好在chrome浏览器市场份额逐年上升，现在以超过26%的市场份额位居第二，同时微软前不久宣布停止对IE6的技术支持并提示用户更新到新版本浏览器，这个曾经让无数前端工程师为之头疼的浏览器有望退出历史舞台，再加上几乎所有的智能手机浏览器都支持HTML5，所以使得WebSocket的实战意义大增，但是无论如何，我们实际的项目中，仍然要考虑低版本浏览器的兼容方案：在支持WebSocket的浏览器中采用新技术，而在不支持WebSocket的浏览器里启用Comet来接收发送消息。</p>
+<h1 id="WebSocket_u5B9E_u6218"><a href="#WebSocket_u5B9E_u6218" class="headerlink" title="WebSocket实战"></a>WebSocket实战</h1><p>本文将以多人在线聊天应用作为实例场景，我们先来确定这个聊天应用的基本需求。</p>
+<h2 id="u9700_u6C42_u5206_u6790"><a href="#u9700_u6C42_u5206_u6790" class="headerlink" title="需求分析"></a>需求分析</h2><p>1、兼容不支持WebSocket的低版本浏览器。<br>2、允许客户端有相同的用户名。<br>3、进入聊天室后可以看到当前在线的用户和在线人数。<br>4、用户上线或退出，所有在线的客户端应该实时更新。<br>5、用户发送消息，所有客户端实时收取。  </p>
+<p>在实际的开发过程中，为了使用WebSocket接口构建Web应用，我们首先需要构建一个实现了 WebSocket规范的服务端，服务端的实现不受平台和开发语言的限制，只需要遵从WebSocket规范即可，目前已经出现了一些比较成熟的WebSocket服务端实现，比如本文使用的Node.js+Socket.IO。为什么选用这个方案呢？先来简单介绍下他们两。</p>
+<h2 id="Node-js"><a href="#Node-js" class="headerlink" title="Node.js"></a>Node.js</h2><p>Node.js采用C++语言编写而成，它不是Javascript应用，而是一个Javascript的运行环境，据Node.js创始人Ryan Dahl回忆，他最初希望采用Ruby来写Node.js，但是后来发现Ruby虚拟机的性能不能满足他的要求，后来他尝试采用V8引擎，所以选择了C++语言。</p>
+<p>Node.js支持的系统包括*nux、Windows，这意味着程序员可以编写系统级或者服务器端的Javascript代码，交给Node.js来解释执行。Node.js的Web开发框架Express，可以帮助程序员快速建立web站点，从2009年诞生至今，Node.js的成长的速度有目共睹，其发展前景获得了技术社区的充分肯定。</p>
+<h2 id="Socket-IO"><a href="#Socket-IO" class="headerlink" title="Socket.IO"></a>Socket.IO</h2><p>Socket.IO是一个开源的WebSocket库，它通过Node.js实现WebSocket服务端，同时也提供客户端JS库。Socket.IO支持以事件为基础的实时双向通讯，它可以工作在任何平台、浏览器或移动设备。</p>
+<p>Socket.IO支持4种协议：WebSocket、htmlfile、xhr-polling、jsonp-polling，它会自动根据浏览器选择适合的通讯方式，从而让开发者可以聚焦到功能的实现而不是平台的兼容性，同时Socket.IO具有不错的稳定性和性能。</p>
+<h1 id="u7F16_u7801_u5B9E_u73B0"><a href="#u7F16_u7801_u5B9E_u73B0" class="headerlink" title="编码实现"></a>编码实现</h1><p>本文一开始的的插图就是效果演示图：可以<a href="http://demo.plhwin.com/chat/" target="_blank" rel="external">点击这里</a>查看在线演示，整个开发过程非常简单，下面简单记录了开发步骤：</p>
+<h2 id="u5B89_u88C5Node-js"><a href="#u5B89_u88C5Node-js" class="headerlink" title="安装Node.js"></a>安装Node.js</h2><p>根据自己的操作系统，去<a href="http://www.nodejs.org/download/" target="_blank" rel="external">Node.js官网</a>下载安装即可。如果成功安装。在命令行输入<code>node -v</code>和<code>npm -v</code>应该能看到相应的版本号。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">node -v  </span><br><span class="line">v0.<span class="number">10.26</span>  </span><br><span class="line">npm -v  </span><br><span class="line"><span class="number">1.4</span>.<span class="number">6</span></span><br></pre></td></tr></table></figure>
+<h2 id="u642D_u5EFAWebSocket_u670D_u52A1_u7AEF"><a href="#u642D_u5EFAWebSocket_u670D_u52A1_u7AEF" class="headerlink" title="搭建WebSocket服务端"></a>搭建WebSocket服务端</h2><p>这个环节我们尽可能的考虑真实生产环境，把WebSocket后端服务搭建成一个线上可以用域名访问的服务，如果你是在本地开发环境，可以换成本地ip地址，或者使用一个虚拟域名指向本地ip。</p>
+<p>进入到你的工作目录，如<code>/workspace/wwwroot/plhwin/realtime.plhwin.com</code>，新建一个名为 <code>package.json</code>的文件，内容如下：<br><figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  "<span class="attribute">name</span>": <span class="value"><span class="string">"realtime-server"</span></span>,</span><br><span class="line">  "<span class="attribute">version</span>": <span class="value"><span class="string">"0.0.1"</span></span>,</span><br><span class="line">  "<span class="attribute">description</span>": <span class="value"><span class="string">"my first realtime server"</span></span>,</span><br><span class="line">  "<span class="attribute">dependencies</span>": <span class="value">&#123;&#125;</span><br><span class="line"></span>&#125;</span><br></pre></td></tr></table></figure></p>
+<p>接下来使用<code>npm</code>命令安装<code>express</code>和<code>socket.io</code><br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">npm <span class="operator"><span class="keyword">install</span> <span class="comment">--save express</span></span><br><span class="line">npm <span class="keyword">install</span> <span class="comment">--save socket.io</span></span></span><br></pre></td></tr></table></figure></p>
+<p>安装成功后，应该可以看到工作目录下生成了一个名为<code>node_modules</code>的文件夹，里面分别是<code>express</code>和<code>socket.io</code>，接下来可以开始编写服务端的代码了，新建一个文件：<code>index.js</code></p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> app = <span class="built_in">require</span>(<span class="string">'express'</span>)();</span><br><span class="line"><span class="keyword">var</span> http = <span class="built_in">require</span>(<span class="string">'http'</span>).Server(app);</span><br><span class="line"><span class="keyword">var</span> io = <span class="built_in">require</span>(<span class="string">'socket.io'</span>)(http);</span><br><span class="line"></span><br><span class="line">app.get(<span class="string">'/'</span>, <span class="function"><span class="keyword">function</span>(<span class="params">req, res</span>)</span>&#123;</span><br><span class="line">	res.send(<span class="string">'&lt;h1&gt;Welcome Realtime Server&lt;/h1&gt;'</span>);</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">http.listen(<span class="number">3000</span>, <span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">	<span class="built_in">console</span>.log(<span class="string">'listening on *:3000'</span>);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<p>命令行运行<code>node index.js</code>，如果一切顺利，你应该会看到返回的<code>listening on *:3000</code>字样，这说明服务已经成功搭建了。此时浏览器中打开<code>http://localhost:3000</code>应该可以看到正常的欢迎页面。</p>
+<p>如果你想要让服务运行在线上服务器，并且可以通过域名访问的话，可以使用Nginx做代理，在nginx.conf中添加如下配置，然后将域名（比如：realtime.plhwin.com）解析到服务器IP即可。</p>
+<figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="title">server</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="title">listen</span>       <span class="number">80</span>;</span><br><span class="line">  <span class="title">server_name</span>  realtime.plhwin.com;</span><br><span class="line">  <span class="title">location</span> / &#123;</span><br><span class="line">    <span class="title">proxy_pass</span> <span class="url">http://127.0.0.1:3000</span>;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>完成以上步骤，<code>http://realtime.plhwin.com:3000</code>的后端服务就正常搭建了。</p>
+<p><img src="http://static.plhwin.com/images/nodejs-socketio/welcome-realtime-server.jpg" alt=""></p>
+<h2 id="u670D_u52A1_u7AEF_u4EE3_u7801_u5B9E_u73B0"><a href="#u670D_u52A1_u7AEF_u4EE3_u7801_u5B9E_u73B0" class="headerlink" title="服务端代码实现"></a>服务端代码实现</h2><p>前面讲到的<code>index.js</code>运行在服务端，之前的代码只是一个简单的WebServer欢迎内容，让我们把WebSocket服务端完整的实现代码加入进去，整个服务端就可以处理客户端的请求了。完整的<code>index.js</code>代码如下：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> app = <span class="built_in">require</span>(<span class="string">'express'</span>)();</span><br><span class="line"><span class="keyword">var</span> http = <span class="built_in">require</span>(<span class="string">'http'</span>).Server(app);</span><br><span class="line"><span class="keyword">var</span> io = <span class="built_in">require</span>(<span class="string">'socket.io'</span>)(http);</span><br><span class="line"></span><br><span class="line">app.get(<span class="string">'/'</span>, <span class="function"><span class="keyword">function</span>(<span class="params">req, res</span>)</span>&#123;</span><br><span class="line">	res.send(<span class="string">'&lt;h1&gt;Welcome Realtime Server&lt;/h1&gt;'</span>);</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">//在线用户</span></span><br><span class="line"><span class="keyword">var</span> onlineUsers = &#123;&#125;;</span><br><span class="line"><span class="comment">//当前在线人数</span></span><br><span class="line"><span class="keyword">var</span> onlineCount = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">io.on(<span class="string">'connection'</span>, <span class="function"><span class="keyword">function</span>(<span class="params">socket</span>)</span>&#123;</span><br><span class="line">	<span class="built_in">console</span>.log(<span class="string">'a user connected'</span>);</span><br><span class="line">	</span><br><span class="line">	<span class="comment">//监听新用户加入</span></span><br><span class="line">	socket.on(<span class="string">'login'</span>, <span class="function"><span class="keyword">function</span>(<span class="params">obj</span>)</span>&#123;</span><br><span class="line">		<span class="comment">//将新加入用户的唯一标识当作socket的名称，后面退出的时候会用到</span></span><br><span class="line">		socket.name = obj.userid;</span><br><span class="line">		</span><br><span class="line">		<span class="comment">//检查在线列表，如果不在里面就加入</span></span><br><span class="line">		<span class="keyword">if</span>(!onlineUsers.hasOwnProperty(obj.userid)) &#123;</span><br><span class="line">			onlineUsers[obj.userid] = obj.username;</span><br><span class="line">			<span class="comment">//在线人数+1</span></span><br><span class="line">			onlineCount++;</span><br><span class="line">		&#125;</span><br><span class="line">		</span><br><span class="line">		<span class="comment">//向所有客户端广播用户加入</span></span><br><span class="line">		io.emit(<span class="string">'login'</span>, &#123;onlineUsers:onlineUsers, onlineCount:onlineCount, user:obj&#125;);</span><br><span class="line">		<span class="built_in">console</span>.log(obj.username+<span class="string">'加入了聊天室'</span>);</span><br><span class="line">	&#125;);</span><br><span class="line">	</span><br><span class="line">	<span class="comment">//监听用户退出</span></span><br><span class="line">	socket.on(<span class="string">'disconnect'</span>, <span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">		<span class="comment">//将退出的用户从在线列表中删除</span></span><br><span class="line">		<span class="keyword">if</span>(onlineUsers.hasOwnProperty(socket.name)) &#123;</span><br><span class="line">			<span class="comment">//退出用户的信息</span></span><br><span class="line">			<span class="keyword">var</span> obj = &#123;userid:socket.name, username:onlineUsers[socket.name]&#125;;</span><br><span class="line">			</span><br><span class="line">			<span class="comment">//删除</span></span><br><span class="line">			<span class="keyword">delete</span> onlineUsers[socket.name];</span><br><span class="line">			<span class="comment">//在线人数-1</span></span><br><span class="line">			onlineCount--;</span><br><span class="line">			</span><br><span class="line">			<span class="comment">//向所有客户端广播用户退出</span></span><br><span class="line">			io.emit(<span class="string">'logout'</span>, &#123;onlineUsers:onlineUsers, onlineCount:onlineCount, user:obj&#125;);</span><br><span class="line">			<span class="built_in">console</span>.log(obj.username+<span class="string">'退出了聊天室'</span>);</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;);</span><br><span class="line">	</span><br><span class="line">	<span class="comment">//监听用户发布聊天内容</span></span><br><span class="line">	socket.on(<span class="string">'message'</span>, <span class="function"><span class="keyword">function</span>(<span class="params">obj</span>)</span>&#123;</span><br><span class="line">		<span class="comment">//向所有客户端广播发布的消息</span></span><br><span class="line">		io.emit(<span class="string">'message'</span>, obj);</span><br><span class="line">		<span class="built_in">console</span>.log(obj.username+<span class="string">'说：'</span>+obj.content);</span><br><span class="line">	&#125;);</span><br><span class="line">  </span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">http.listen(<span class="number">3000</span>, <span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">	<span class="built_in">console</span>.log(<span class="string">'listening on *:3000'</span>);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<h2 id="u5BA2_u6237_u7AEF_u4EE3_u7801_u5B9E_u73B0"><a href="#u5BA2_u6237_u7AEF_u4EE3_u7801_u5B9E_u73B0" class="headerlink" title="客户端代码实现"></a>客户端代码实现</h2><p>进入客户端工作目录<code>/workspace/wwwroot/plhwin/demo.plhwin.com/chat</code>，新建一个<code>index.html</code>:</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br></pre></td><td class="code"><pre><span class="line"><span class="doctype">&lt;!DOCTYPE html&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="title">html</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="title">head</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="title">meta</span> <span class="attribute">charset</span>=<span class="value">"utf-8"</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="title">meta</span> <span class="attribute">name</span>=<span class="value">"format-detection"</span> <span class="attribute">content</span>=<span class="value">"telephone=no"</span>/&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="title">meta</span> <span class="attribute">name</span>=<span class="value">"format-detection"</span> <span class="attribute">content</span>=<span class="value">"email=no"</span>/&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="title">meta</span> <span class="attribute">content</span>=<span class="value">"width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=0"</span> <span class="attribute">name</span>=<span class="value">"viewport"</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="title">title</span>&gt;</span>多人聊天室<span class="tag">&lt;/<span class="title">title</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="title">link</span> <span class="attribute">rel</span>=<span class="value">"stylesheet"</span> <span class="attribute">type</span>=<span class="value">"text/css"</span> <span class="attribute">href</span>=<span class="value">"./style.css"</span> /&gt;</span></span><br><span class="line">        <span class="comment">&lt;!--[if lt IE 8]&gt;&lt;script src="./json3.min.js"&gt;&lt;/script&gt;&lt;![endif]--&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="title">script</span> <span class="attribute">src</span>=<span class="value">"http://realtime.plhwin.com:3000/socket.io/socket.io.js"</span>&gt;</span><span class="undefined"></span><span class="tag">&lt;/<span class="title">script</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="title">head</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="title">body</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="title">div</span> <span class="attribute">id</span>=<span class="value">"loginbox"</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="title">div</span> <span class="attribute">style</span>=<span class="value">"width:260px;margin:200px auto;"</span>&gt;</span></span><br><span class="line">                请先输入你在聊天室的昵称</span><br><span class="line">                <span class="tag">&lt;<span class="title">br</span>/&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="title">br</span>/&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="title">input</span> <span class="attribute">type</span>=<span class="value">"text"</span> <span class="attribute">style</span>=<span class="value">"width:180px;"</span> <span class="attribute">placeholder</span>=<span class="value">"请输入用户名"</span> <span class="attribute">id</span>=<span class="value">"username"</span> <span class="attribute">name</span>=<span class="value">"username"</span> /&gt;</span></span><br><span class="line">				<span class="tag">&lt;<span class="title">input</span> <span class="attribute">type</span>=<span class="value">"button"</span> <span class="attribute">style</span>=<span class="value">"width:50px;"</span> <span class="attribute">value</span>=<span class="value">"提交"</span> <span class="attribute">onclick</span>=<span class="value">"CHAT.usernameSubmit();"</span>/&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="title">div</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="title">div</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="title">div</span> <span class="attribute">id</span>=<span class="value">"chatbox"</span> <span class="attribute">style</span>=<span class="value">"display:none;"</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="title">div</span> <span class="attribute">style</span>=<span class="value">"background:#3d3d3d;height: 28px; width: 100%;font-size:12px;"</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="title">div</span> <span class="attribute">style</span>=<span class="value">"line-height: 28px;color:#fff;"</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;<span class="title">span</span> <span class="attribute">style</span>=<span class="value">"text-align:left;margin-left:10px;"</span>&gt;</span>Websocket多人聊天室<span class="tag">&lt;/<span class="title">span</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;<span class="title">span</span> <span class="attribute">style</span>=<span class="value">"float:right; margin-right:10px;"</span>&gt;</span><span class="tag">&lt;<span class="title">span</span> <span class="attribute">id</span>=<span class="value">"showusername"</span>&gt;</span><span class="tag">&lt;/<span class="title">span</span>&gt;</span> | </span><br><span class="line">					<span class="tag">&lt;<span class="title">a</span> <span class="attribute">href</span>=<span class="value">"javascript:;"</span> <span class="attribute">onclick</span>=<span class="value">"CHAT.logout()"</span> <span class="attribute">style</span>=<span class="value">"color:#fff;"</span>&gt;</span>退出<span class="tag">&lt;/<span class="title">a</span>&gt;</span><span class="tag">&lt;/<span class="title">span</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;/<span class="title">div</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="title">div</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="title">div</span> <span class="attribute">id</span>=<span class="value">"doc"</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="title">div</span> <span class="attribute">id</span>=<span class="value">"chat"</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;<span class="title">div</span> <span class="attribute">id</span>=<span class="value">"message"</span> <span class="attribute">class</span>=<span class="value">"message"</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="title">div</span> <span class="attribute">id</span>=<span class="value">"onlinecount"</span> <span class="attribute">style</span>=<span class="value">"background:#EFEFF4; font-size:12px; margin-top:10px; margin-left:10px; color:#666;"</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="title">div</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;/<span class="title">div</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;<span class="title">div</span> <span class="attribute">class</span>=<span class="value">"input-box"</span>&gt;</span></span><br><span class="line">                        <span class="tag">&lt;<span class="title">div</span> <span class="attribute">class</span>=<span class="value">"input"</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="title">input</span> <span class="attribute">type</span>=<span class="value">"text"</span> <span class="attribute">maxlength</span>=<span class="value">"140"</span> <span class="attribute">placeholder</span>=<span class="value">"请输入聊天内容，按Ctrl提交"</span> <span class="attribute">id</span>=<span class="value">"content"</span> <span class="attribute">name</span>=<span class="value">"content"</span>&gt;</span></span><br><span class="line">                        <span class="tag">&lt;/<span class="title">div</span>&gt;</span></span><br><span class="line">                        <span class="tag">&lt;<span class="title">div</span> <span class="attribute">class</span>=<span class="value">"action"</span>&gt;</span></span><br><span class="line">                            <span class="tag">&lt;<span class="title">button</span> <span class="attribute">type</span>=<span class="value">"button"</span> <span class="attribute">id</span>=<span class="value">"mjr_send"</span> <span class="attribute">onclick</span>=<span class="value">"CHAT.submit();"</span>&gt;</span>提交<span class="tag">&lt;/<span class="title">button</span>&gt;</span></span><br><span class="line">                        <span class="tag">&lt;/<span class="title">div</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;/<span class="title">div</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;/<span class="title">div</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="title">div</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="title">div</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="title">script</span> <span class="attribute">type</span>=<span class="value">"text/javascript"</span> <span class="attribute">src</span>=<span class="value">"./client.js"</span>&gt;</span><span class="undefined"></span><span class="tag">&lt;/<span class="title">script</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="title">body</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="title">html</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>上面的html内容本身没有什么好说的，我们主要看看里面的4个文件请求：<br>1、<code>realtime.plhwin.com:3000/socket.io/socket.io.js</code><br>2、<code>style.css</code><br>3、<code>json3.min.js</code><br>4、<code>client.js</code></p>
+<p>第1个JS是Socket.IO提供的客户端JS文件，在前面安装服务端的步骤中，当npm安装完socket.io并搭建起WebServer后，这个JS文件就可以正常访问了。</p>
+<p>第2个style.css文件没什么好说的，就是样式文件而已。</p>
+<p>第3个JS只在IE8以下版本的IE浏览器中加载，目的是让这些低版本的IE浏览器也能处理json，这是一个开源的JS，详见：<a href="http://bestiejs.github.io/json3/" target="_blank" rel="external">http://bestiejs.github.io/json3/</a></p>
+<p>第4个<code>client.js</code>是完整的客户端的业务逻辑实现代码，它的内容如下：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br></pre></td><td class="code"><pre><span class="line">(<span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123;</span><br><span class="line">	<span class="keyword">var</span> d = <span class="built_in">document</span>,</span><br><span class="line">	w = <span class="built_in">window</span>,</span><br><span class="line">	p = <span class="built_in">parseInt</span>,</span><br><span class="line">	dd = d.documentElement,</span><br><span class="line">	db = d.body,</span><br><span class="line">	dc = d.compatMode == <span class="string">'CSS1Compat'</span>,</span><br><span class="line">	dx = dc ? dd: db,</span><br><span class="line">	ec = <span class="built_in">encodeURIComponent</span>;</span><br><span class="line">	</span><br><span class="line">	</span><br><span class="line">	w.CHAT = &#123;</span><br><span class="line">		msgObj:d.getElementById(<span class="string">"message"</span>),</span><br><span class="line">		screenheight:w.innerHeight ? w.innerHeight : dx.clientHeight,</span><br><span class="line">		username:<span class="literal">null</span>,</span><br><span class="line">		userid:<span class="literal">null</span>,</span><br><span class="line">		socket:<span class="literal">null</span>,</span><br><span class="line">		<span class="comment">//让浏览器滚动条保持在最低部</span></span><br><span class="line">		scrollToBottom:<span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">			w.scrollTo(<span class="number">0</span>, <span class="keyword">this</span>.msgObj.clientHeight);</span><br><span class="line">		&#125;,</span><br><span class="line">		<span class="comment">//退出，本例只是一个简单的刷新</span></span><br><span class="line">		logout:<span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">			<span class="comment">//this.socket.disconnect();</span></span><br><span class="line">			location.reload();</span><br><span class="line">		&#125;,</span><br><span class="line">		<span class="comment">//提交聊天消息内容</span></span><br><span class="line">		submit:<span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">			<span class="keyword">var</span> content = d.getElementById(<span class="string">"content"</span>).value;</span><br><span class="line">			<span class="keyword">if</span>(content != <span class="string">''</span>)&#123;</span><br><span class="line">				<span class="keyword">var</span> obj = &#123;</span><br><span class="line">					userid: <span class="keyword">this</span>.userid,</span><br><span class="line">					username: <span class="keyword">this</span>.username,</span><br><span class="line">					content: content</span><br><span class="line">				&#125;;</span><br><span class="line">				<span class="keyword">this</span>.socket.emit(<span class="string">'message'</span>, obj);</span><br><span class="line">				d.getElementById(<span class="string">"content"</span>).value = <span class="string">''</span>;</span><br><span class="line">			&#125;</span><br><span class="line">			<span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">		&#125;,</span><br><span class="line">		genUid:<span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">			<span class="keyword">return</span> <span class="keyword">new</span> <span class="built_in">Date</span>().getTime()+<span class="string">""</span>+<span class="built_in">Math</span>.floor(<span class="built_in">Math</span>.random()*<span class="number">899</span>+<span class="number">100</span>);</span><br><span class="line">		&#125;,</span><br><span class="line">		<span class="comment">//更新系统消息，本例中在用户加入、退出的时候调用</span></span><br><span class="line">		updateSysMsg:<span class="function"><span class="keyword">function</span>(<span class="params">o, action</span>)</span>&#123;</span><br><span class="line">			<span class="comment">//当前在线用户列表</span></span><br><span class="line">			<span class="keyword">var</span> onlineUsers = o.onlineUsers;</span><br><span class="line">			<span class="comment">//当前在线人数</span></span><br><span class="line">			<span class="keyword">var</span> onlineCount = o.onlineCount;</span><br><span class="line">			<span class="comment">//新加入用户的信息</span></span><br><span class="line">			<span class="keyword">var</span> user = o.user;</span><br><span class="line">				</span><br><span class="line">			<span class="comment">//更新在线人数</span></span><br><span class="line">			<span class="keyword">var</span> userhtml = <span class="string">''</span>;</span><br><span class="line">			<span class="keyword">var</span> separator = <span class="string">''</span>;</span><br><span class="line">			<span class="keyword">for</span>(key <span class="keyword">in</span> onlineUsers) &#123;</span><br><span class="line">		        <span class="keyword">if</span>(onlineUsers.hasOwnProperty(key))&#123;</span><br><span class="line">					userhtml += separator+onlineUsers[key];</span><br><span class="line">					separator = <span class="string">'、'</span>;</span><br><span class="line">				&#125;</span><br><span class="line">		    &#125;</span><br><span class="line">			d.getElementById(<span class="string">"onlinecount"</span>).innerHTML = <span class="string">'当前共有 '</span>+onlineCount+<span class="string">' 人在线，在线列表：'</span>+userhtml;</span><br><span class="line">			</span><br><span class="line">			<span class="comment">//添加系统消息</span></span><br><span class="line">			<span class="keyword">var</span> html = <span class="string">''</span>;</span><br><span class="line">			html += <span class="string">'&lt;div class="msg-system"&gt;'</span>;</span><br><span class="line">			html += user.username;</span><br><span class="line">			html += (action == <span class="string">'login'</span>) ? <span class="string">' 加入了聊天室'</span> : <span class="string">' 退出了聊天室'</span>;</span><br><span class="line">			html += <span class="string">'&lt;/div&gt;'</span>;</span><br><span class="line">			<span class="keyword">var</span> section = d.createElement(<span class="string">'section'</span>);</span><br><span class="line">			section.className = <span class="string">'system J-mjrlinkWrap J-cutMsg'</span>;</span><br><span class="line">			section.innerHTML = html;</span><br><span class="line">			<span class="keyword">this</span>.msgObj.appendChild(section);	</span><br><span class="line">			<span class="keyword">this</span>.scrollToBottom();</span><br><span class="line">		&#125;,</span><br><span class="line">		<span class="comment">//第一个界面用户提交用户名</span></span><br><span class="line">		usernameSubmit:<span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">			<span class="keyword">var</span> username = d.getElementById(<span class="string">"username"</span>).value;</span><br><span class="line">			<span class="keyword">if</span>(username != <span class="string">""</span>)&#123;</span><br><span class="line">				d.getElementById(<span class="string">"username"</span>).value = <span class="string">''</span>;</span><br><span class="line">				d.getElementById(<span class="string">"loginbox"</span>).style.display = <span class="string">'none'</span>;</span><br><span class="line">				d.getElementById(<span class="string">"chatbox"</span>).style.display = <span class="string">'block'</span>;</span><br><span class="line">				<span class="keyword">this</span>.init(username);</span><br><span class="line">			&#125;</span><br><span class="line">			<span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">		&#125;,</span><br><span class="line">		init:<span class="function"><span class="keyword">function</span>(<span class="params">username</span>)</span>&#123;</span><br><span class="line">			<span class="comment">/*</span><br><span class="line">			客户端根据时间和随机数生成uid,这样使得聊天室用户名称可以重复。</span><br><span class="line">			实际项目中，如果是需要用户登录，那么直接采用用户的uid来做标识就可以</span><br><span class="line">			*/</span></span><br><span class="line">			<span class="keyword">this</span>.userid = <span class="keyword">this</span>.genUid();</span><br><span class="line">			<span class="keyword">this</span>.username = username;</span><br><span class="line">			</span><br><span class="line">			d.getElementById(<span class="string">"showusername"</span>).innerHTML = <span class="keyword">this</span>.username;</span><br><span class="line">			<span class="keyword">this</span>.msgObj.style.minHeight = (<span class="keyword">this</span>.screenheight - db.clientHeight + <span class="keyword">this</span>.msgObj.clientHeight) + <span class="string">"px"</span>;</span><br><span class="line">			<span class="keyword">this</span>.scrollToBottom();</span><br><span class="line">			</span><br><span class="line">			<span class="comment">//连接websocket后端服务器</span></span><br><span class="line">			<span class="keyword">this</span>.socket = io.connect(<span class="string">'ws://realtime.plhwin.com:3000'</span>);</span><br><span class="line">			</span><br><span class="line">			<span class="comment">//告诉服务器端有用户登录</span></span><br><span class="line">			<span class="keyword">this</span>.socket.emit(<span class="string">'login'</span>, &#123;userid:<span class="keyword">this</span>.userid, username:<span class="keyword">this</span>.username&#125;);</span><br><span class="line">			</span><br><span class="line">			<span class="comment">//监听新用户登录</span></span><br><span class="line">			<span class="keyword">this</span>.socket.on(<span class="string">'login'</span>, <span class="function"><span class="keyword">function</span>(<span class="params">o</span>)</span>&#123;</span><br><span class="line">				CHAT.updateSysMsg(o, <span class="string">'login'</span>);	</span><br><span class="line">			&#125;);</span><br><span class="line">			</span><br><span class="line">			<span class="comment">//监听用户退出</span></span><br><span class="line">			<span class="keyword">this</span>.socket.on(<span class="string">'logout'</span>, <span class="function"><span class="keyword">function</span>(<span class="params">o</span>)</span>&#123;</span><br><span class="line">				CHAT.updateSysMsg(o, <span class="string">'logout'</span>);</span><br><span class="line">			&#125;);</span><br><span class="line">			</span><br><span class="line">			<span class="comment">//监听消息发送</span></span><br><span class="line">			<span class="keyword">this</span>.socket.on(<span class="string">'message'</span>, <span class="function"><span class="keyword">function</span>(<span class="params">obj</span>)</span>&#123;</span><br><span class="line">				<span class="keyword">var</span> isme = (obj.userid == CHAT.userid) ? <span class="literal">true</span> : <span class="literal">false</span>;</span><br><span class="line">				<span class="keyword">var</span> contentDiv = <span class="string">'&lt;div&gt;'</span>+obj.content+<span class="string">'&lt;/div&gt;'</span>;</span><br><span class="line">				<span class="keyword">var</span> usernameDiv = <span class="string">'&lt;span&gt;'</span>+obj.username+<span class="string">'&lt;/span&gt;'</span>;</span><br><span class="line">				</span><br><span class="line">				<span class="keyword">var</span> section = d.createElement(<span class="string">'section'</span>);</span><br><span class="line">				<span class="keyword">if</span>(isme)&#123;</span><br><span class="line">					section.className = <span class="string">'user'</span>;</span><br><span class="line">					section.innerHTML = contentDiv + usernameDiv;</span><br><span class="line">				&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">					section.className = <span class="string">'service'</span>;</span><br><span class="line">					section.innerHTML = usernameDiv + contentDiv;</span><br><span class="line">				&#125;</span><br><span class="line">				CHAT.msgObj.appendChild(section);</span><br><span class="line">				CHAT.scrollToBottom();	</span><br><span class="line">			&#125;);</span><br><span class="line"></span><br><span class="line">		&#125;</span><br><span class="line">	&#125;;</span><br><span class="line">	<span class="comment">//通过“回车”提交用户名</span></span><br><span class="line">	d.getElementById(<span class="string">"username"</span>).onkeydown = <span class="function"><span class="keyword">function</span>(<span class="params">e</span>) </span>&#123;</span><br><span class="line">		e = e || event;</span><br><span class="line">		<span class="keyword">if</span> (e.keyCode === <span class="number">13</span>) &#123;</span><br><span class="line">			CHAT.usernameSubmit();</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;;</span><br><span class="line">	<span class="comment">//通过“回车”提交信息</span></span><br><span class="line">	d.getElementById(<span class="string">"content"</span>).onkeydown = <span class="function"><span class="keyword">function</span>(<span class="params">e</span>) </span>&#123;</span><br><span class="line">		e = e || event;</span><br><span class="line">		<span class="keyword">if</span> (e.keyCode === <span class="number">13</span>) &#123;</span><br><span class="line">			CHAT.submit();</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;;</span><br><span class="line">&#125;)();</span><br></pre></td></tr></table></figure>
+<p>至此所有的编码开发工作全部完成了，在浏览器中打开<a href="http://demo.plhwin.com/chat/" target="_blank" rel="external">demo.plhwin.com/chat/</a>就可以看到效果了。上面所有的客户端和服务端的代码可以从Github上获得，<a href="https://github.com/plhwin/nodejs-socketio-chat" target="_blank" rel="external">点这里跳转到Github项目主页</a>，或者在命令行将代码Clone到本地。</p>
+<pre><code>git clone https://github.com/plhwin/nodejs-socketio-chat.git
+</code></pre><p>下载本地后有两个文件夹 <code>client</code> 和 <code>server</code>，<code>client</code>文件夹是客户端源码，可以放在Nginx/Apache的WebServer中，也可以放在Node.js的WebServer中。后面的<code>server</code>文件夹里的代码是websocket服务端代码，放在Node.js环境中，使用npm安装完 <code>express</code> 和 <code>socket.io</code> 后，<code>node index.js</code> 启动后端服务就可以了。</p>
+<h1 id="u7559_u7ED9_u6211_u4EEC_u7684_u601D_u8003"><a href="#u7559_u7ED9_u6211_u4EEC_u7684_u601D_u8003" class="headerlink" title="留给我们的思考"></a>留给我们的思考</h1><p>1、假设是一个在线客服系统，里面有许多的公司使用你的服务，每个公司自己的用户可以通过一个专属URL地址进入该公司的聊天室，聊天是一对一的，每个公司可以新建多个客服人员，每个客服人员可以同时和客户端的多个用户聊天。</p>
+<p>2、又假设是一个在线WebIM系统，实现类似微信，qq的功能，客户端可以看到好友在线状态，在线列表，添加好友，删除好友，新建群组等，消息的发送除了支持基本的文字外，还能支持表情、图片和文件。</p>
+<p>有兴趣的同学可以继续深入研究。</p>
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Node-js/" rel="tag">#Node.js</a>
+          
+            <a href="/tags/NodeJS/" rel="tag">#NodeJS</a>
+          
+            <a href="/tags/Realtime/" rel="tag">#Realtime</a>
+          
+            <a href="/tags/Socket-IO/" rel="tag">#Socket.IO</a>
+          
+            <a href="/tags/WebSocket/" rel="tag">#WebSocket</a>
+          
+            <a href="/tags/消息推送/" rel="tag">#消息推送</a>
+          
+            <a href="/tags/网络编程/" rel="tag">#网络编程</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2014/06/13/web-security-sql/" rel="prev" title="Web安全之SQL注入攻击技巧与防范">
+                Web安全之SQL注入攻击技巧与防范 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="uyan_frame"></div>
+      <!-- UY BEGIN -->
+      <script type="text/javascript">
+      var WEBHOST = "http://www.plhwin.com"
+      var PAGEURL = "http://www.plhwin.com/2014/05/28/nodejs-socketio/index.html";
+      PAGEURL = PAGEURL.replace(/index\.html$/, "");
+      var uyan_config = {
+        du: WEBHOST,
+        su: PAGEURL
+      };
+      </script>
+      <script type="text/javascript" src="http://v2.uyan.cc/code/uyan.js?uid=1583460"></script>
+      <!-- UY END -->
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.jpg"
+               alt="彼得潘" />
+          <p class="site-author-name" itemprop="name">彼得潘</p>
+          <p class="site-description motion-element" itemprop="description">每个人都应该为梦想付出全部</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">3</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+          
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">3</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">13</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/plhwin" target="_blank">
+                  
+                    <i class="fa fa-github"></i> Github
+                  
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://twitter.com/plhwin" target="_blank">
+                  
+                    <i class="fa fa-twitter"></i> Twitter
+                  
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/panlianghu" target="_blank">
+                  
+                    <i class="fa fa-weibo"></i> 微博
+                  
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://www.zhihu.com/people/plhwin" target="_blank">
+                  
+                    <i class="fa fa-globe"></i> 知乎
+                  
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc-indicator-top post-toc-indicator">
+            <i class="fa fa-angle-double-up"></i>
+          </div>
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#WebSocket_u7B80_u4ECB"><span class="nav-number">1.</span> <span class="nav-text">WebSocket简介</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#WebSocket_u5B9E_u6218"><span class="nav-number">2.</span> <span class="nav-text">WebSocket实战</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#u9700_u6C42_u5206_u6790"><span class="nav-number">2.1.</span> <span class="nav-text">需求分析</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Node-js"><span class="nav-number">2.2.</span> <span class="nav-text">Node.js</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Socket-IO"><span class="nav-number">2.3.</span> <span class="nav-text">Socket.IO</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#u7F16_u7801_u5B9E_u73B0"><span class="nav-number">3.</span> <span class="nav-text">编码实现</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#u5B89_u88C5Node-js"><span class="nav-number">3.1.</span> <span class="nav-text">安装Node.js</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#u642D_u5EFAWebSocket_u670D_u52A1_u7AEF"><span class="nav-number">3.2.</span> <span class="nav-text">搭建WebSocket服务端</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#u670D_u52A1_u7AEF_u4EE3_u7801_u5B9E_u73B0"><span class="nav-number">3.3.</span> <span class="nav-text">服务端代码实现</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#u5BA2_u6237_u7AEF_u4EE3_u7801_u5B9E_u73B0"><span class="nav-number">3.4.</span> <span class="nav-text">客户端代码实现</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#u7559_u7ED9_u6211_u4EEC_u7684_u601D_u8003"><span class="nav-number">4.</span> <span class="nav-text">留给我们的思考</span></a></li></ol></div>
+            
+          </div>
+          <div class="post-toc-indicator-bottom post-toc-indicator">
+            <i class="fa fa-angle-double-down"></i>
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2014 - 
+  <span itemprop="copyrightYear">2016</span>
+  By
+  <span class="author" itemprop="copyrightHolder">彼得潘</span>
+</div>
+
+<div class="powered-by">
+  Powered by <a target="_blank" class="theme-link" href="http://hexo.io">Hexo</a>
+</div>
+
+<div class="theme-info">
+  Theme By 
+  <a target="_blank" class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    Next
+  </a>
+</div>
+
+
+
+      </div>
+    </footer>
+
+    <div class="back-to-top"></div>
+  </div>
+
+  
+
+
+  
+
+
+
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  <script type="text/javascript" src="/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js"></script>
+
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js"></script>
+
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=0.5.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=0.5.0"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=0.5.0"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=0.5.0"></script>
+
+
+
+  
+  
+<script type="text/javascript" src="/js/src/scrollspy.js?v=0.5.0"></script>
+
+<script type="text/javascript" id="sidebar.toc.highlight">
+  $(document).ready(function () {
+    var tocSelector = '.post-toc';
+    var $tocSelector = $(tocSelector);
+    var activeCurrentSelector = '.active-current';
+
+    $tocSelector
+      .on('activate.bs.scrollspy', function () {
+        var $currentActiveElement = $(tocSelector + ' .active').last();
+
+        removeCurrentActiveClass();
+        $currentActiveElement.addClass('active-current');
+
+        $tocSelector[0].scrollTop = $currentActiveElement.position().top;
+      })
+      .on('clear.bs.scrollspy', function () {
+        removeCurrentActiveClass();
+      });
+
+    function removeCurrentActiveClass () {
+      $(tocSelector + ' ' + activeCurrentSelector)
+        .removeClass(activeCurrentSelector.substring(1));
+    }
+
+    function processTOC () {
+      getTOCMaxHeight();
+      toggleTOCOverflowIndicators();
+    }
+
+    function getTOCMaxHeight () {
+      var height = $('.sidebar').height() -
+                   $tocSelector.position().top -
+                   $('.post-toc-indicator-bottom').height();
+
+      $tocSelector.css('height', height);
+
+      return height;
+    }
+
+    function toggleTOCOverflowIndicators () {
+      tocOverflowIndicator(
+        '.post-toc-indicator-top',
+        $tocSelector.scrollTop() > 0 ? 'show' : 'hide'
+      );
+
+      tocOverflowIndicator(
+        '.post-toc-indicator-bottom',
+        $tocSelector.scrollTop() >= $tocSelector.find('ol').height() - $tocSelector.height() ? 'hide' : 'show'
+      )
+    }
+
+    $(document).on('sidebar.motion.complete', function () {
+      processTOC();
+    });
+
+    $('body').scrollspy({ target: tocSelector });
+    $(window).on('resize', function () {
+      if ( $('.sidebar').hasClass('sidebar-active') ) {
+        processTOC();
+      }
+    });
+
+    onScroll($tocSelector);
+
+    function onScroll (element) {
+      element.on('mousewheel DOMMouseScroll', function (event) {
+          var oe = event.originalEvent;
+          var delta = oe.wheelDelta || -oe.detail;
+
+          this.scrollTop += ( delta < 0 ? 1 : -1 ) * 30;
+          event.preventDefault();
+
+          toggleTOCOverflowIndicators();
+      });
+    }
+
+    function tocOverflowIndicator (indicator, action) {
+      var $indicator = $(indicator);
+      var opacity = action === 'show' ? 1 : 0;
+      $indicator.velocity ?
+        $indicator.velocity('stop').velocity({
+          opacity: opacity
+        }, { duration: 100 }) :
+        $indicator.stop().animate({
+          opacity: opacity
+        }, 100);
+    }
+
+  });
+</script>
+
+<script type="text/javascript" id="sidebar.nav">
+  $(document).ready(function () {
+    var html = $('html');
+    var TAB_ANIMATE_DURATION = 200;
+    var hasVelocity = $.isFunction(html.velocity);
+
+    $('.sidebar-nav li').on('click', function () {
+      var item = $(this);
+      var activeTabClassName = 'sidebar-nav-active';
+      var activePanelClassName = 'sidebar-panel-active';
+      if (item.hasClass(activeTabClassName)) {
+        return;
+      }
+
+      var currentTarget = $('.' + activePanelClassName);
+      var target = $('.' + item.data('target'));
+
+      hasVelocity ?
+        currentTarget.velocity('transition.slideUpOut', TAB_ANIMATE_DURATION, function () {
+          target
+            .velocity('stop')
+            .velocity('transition.slideDownIn', TAB_ANIMATE_DURATION)
+            .addClass(activePanelClassName);
+        }) :
+        currentTarget.animate({ opacity: 0 }, TAB_ANIMATE_DURATION, function () {
+          currentTarget.hide();
+          target
+            .stop()
+            .css({'opacity': 0, 'display': 'block'})
+            .animate({ opacity: 1 }, TAB_ANIMATE_DURATION, function () {
+              currentTarget.removeClass(activePanelClassName);
+              target.addClass(activePanelClassName);
+            });
+        });
+
+      item.siblings().removeClass(activeTabClassName);
+      item.addClass(activeTabClassName);
+    });
+
+    $('.post-toc a').on('click', function (e) {
+      e.preventDefault();
+      var targetSelector = NexT.utils.escapeSelector(this.getAttribute('href'));
+      var offset = $(targetSelector).offset().top;
+      hasVelocity ?
+        html.velocity('stop').velocity('scroll', {
+          offset: offset  + 'px',
+          mobileHA: false
+        }) :
+        $('html, body').stop().animate({
+          scrollTop: offset
+        }, 500);
+    });
+
+    // Expand sidebar on post detail page by default, when post has a toc.
+    NexT.motion.middleWares.sidebar = function () {
+      var $tocContent = $('.post-toc-content');
+
+      if (CONFIG.sidebar === 'post') {
+        if ($tocContent.length > 0 && $tocContent.html().trim().length > 0) {
+          NexT.utils.displaySidebar();
+        }
+      }
+    };
+  });
+</script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=0.5.0"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+  
+  
+
+  
+  
+
+
+</body>
+</html>
