@@ -413,6 +413,30 @@
 
   
 
+    <script type="text/javascript">
+      var PAGEURL = "http://www.plhwin.com/tags/Realtime/index.html";
+      var PAGEPATH = "tags/Realtime/index.html";
+      PAGEURL = PAGEURL.replace(/index\.html$/, "");
+      PAGEPATH = PAGEPATH.replace(/index\.html$/, "");
+
+      var disqus_shortname = 'plhwin';
+      var disqus_identifier = PAGEPATH;
+      var disqus_title = '';
+      var disqus_url = PAGEURL;
+
+      function run_disqus_script(disqus_script){
+        var dsq = document.createElement('script');
+        dsq.type = 'text/javascript';
+        dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+      }
+
+      run_disqus_script('count.js');
+      
+    </script>
+  
+
 
 
   

@@ -220,6 +220,13 @@
 
           
             
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2014/06/13/web-security-sql/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2014/06/13/web-security-sql/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
           
 
           
@@ -354,19 +361,12 @@
           
   <div class="comments" id="comments">
     
-      <div id="uyan_frame"></div>
-      <!-- UY BEGIN -->
-      <script type="text/javascript">
-      var WEBHOST = "http://www.plhwin.com"
-      var PAGEURL = "http://www.plhwin.com/2014/06/13/web-security-sql/index.html";
-      PAGEURL = PAGEURL.replace(/index\.html$/, "");
-      var uyan_config = {
-        du: WEBHOST,
-        su: PAGEURL
-      };
-      </script>
-      <script type="text/javascript" src="http://v2.uyan.cc/code/uyan.js?uid=1583460"></script>
-      <!-- UY END -->
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
     
   </div>
 
@@ -760,6 +760,32 @@
 
 
 
+  
+
+    <script type="text/javascript">
+      var PAGEURL = "http://www.plhwin.com/2014/06/13/web-security-sql/index.html";
+      var PAGEPATH = "2014/06/13/web-security-sql/";
+      PAGEURL = PAGEURL.replace(/index\.html$/, "");
+      PAGEPATH = PAGEPATH.replace(/index\.html$/, "");
+
+      var disqus_shortname = 'plhwin';
+      var disqus_identifier = PAGEPATH;
+      var disqus_title = 'Web安全之SQL注入攻击技巧与防范';
+      var disqus_url = PAGEURL;
+
+      function run_disqus_script(disqus_script){
+        var dsq = document.createElement('script');
+        dsq.type = 'text/javascript';
+        dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+      }
+
+      run_disqus_script('count.js');
+      
+        run_disqus_script('embed.js');
+      
+    </script>
   
 
 

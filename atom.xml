@@ -4,7 +4,7 @@
   <subtitle><![CDATA[每个人都应该为梦想付出全部]]></subtitle>
   <link href="/atom.xml" rel="self"/>
   <link href="http://www.plhwin.com/"/>
-  <updated>2016-02-02T11:25:13.000Z</updated>
+  <updated>2016-02-04T06:35:18.000Z</updated>
   <id>http://www.plhwin.com/</id>
   
   <author>
@@ -19,7 +19,7 @@
     <link href="http://www.plhwin.com/2014/07/28/smartisan-t1/"/>
     <id>http://www.plhwin.com/2014/07/28/smartisan-t1/</id>
     <published>2014-07-28T02:25:56.000Z</published>
-    <updated>2016-02-02T11:25:13.000Z</updated>
+    <updated>2016-02-04T06:35:18.000Z</updated>
     <content type="html"><![CDATA[<p>我的锤子手机，噢不，是Smartisan T1早在7月12号就已经收到了，本想早一点写这篇关于T1的文章，但一是我收货不算早，二是大家也都没憋住，各种评测早已经铺天盖地袭来，并且我连一个手机发烧友都算不上更非专业评测机构，所以就只好尽量多花一点时间从整体上仔细体验T1之后再给关心这部手机的人分享一下我自己的使用和感受，以求尽可能的客观，也尽可能的写一些不再重复的内容。<br><a id="more"></a></p>
 <p>作为一个iPhone 3G/4S/5S的长期用户，我得坦承对安卓手机或多或少是存有一些偏见的，如果非要我说喜欢点安卓手机什么吧，可能唯一羡慕的就是那块比iPhone更大尺寸的屏幕了，所以当确认iPhone6肯定会增大屏幕尺寸的时候，我似乎并没有什么理由拒绝它。但iPhone6的上市遥遥无期，而我确实又想要一个介于4.5-5寸的大屏手机，这种情况下，买一部安卓手机哪怕作为过度也是一个很好的选择，况且作为一名互联网从业者有许多的安卓机测试场景，多配备一个不同品牌的安卓机哪怕作为测试也总归没什么错，加之乐于尝鲜，下手T1也就顺理成章了。</p>
 <h1 id="u6536_u8D27_u7BC7"><a href="#u6536_u8D27_u7BC7" class="headerlink" title="收货篇"></a>收货篇</h1><p>5月20号我参加完锤子科技产品发布会后的第二天下单了T1，老罗随后公布了7月8号开始发货，我也在7月8号当天收到了锤子科技3天后（7月11号）给我发货的短信，当时还很兴奋的发了条微博说可以赶在世界杯决赛之前收到T1。</p>
@@ -169,7 +169,7 @@
     <link href="http://www.plhwin.com/2014/05/28/nodejs-socketio/"/>
     <id>http://www.plhwin.com/2014/05/28/nodejs-socketio/</id>
     <published>2014-05-28T08:37:39.000Z</published>
-    <updated>2016-02-02T11:00:58.000Z</updated>
+    <updated>2016-02-04T09:46:49.000Z</updated>
     <content type="html"><![CDATA[<p>Web领域的实时推送技术，也被称作Realtime技术。这种技术要达到的目的是让用户不需要刷新浏览器就可以获得实时更新。它有着广泛的应用场景，比如在线聊天室、在线客服系统、评论系统、WebIM等。<br><a id="more"></a></p>
 <p><img src="http://static.plhwin.com/images/nodejs-socketio/demo.jpg" alt=""></p>
 <h1 id="WebSocket_u7B80_u4ECB"><a href="#WebSocket_u7B80_u4ECB" class="headerlink" title="WebSocket简介"></a>WebSocket简介</h1><p>谈到Web实时推送，就不得不说WebSocket。在WebSocket出现之前，很多网站为了实现实时推送技术，通常采用的方案是轮询(Polling)和Comet技术，Comet又可细分为两种实现方式，一种是长轮询机制，一种称为流技术，这两种方式实际上是对轮询技术的改进，这些方案带来很明显的缺点，需要由浏览器对服务器发出HTTP request，大量消耗服务器带宽和资源。面对这种状况，HTML5定义了WebSocket协议，能更好的节省服务器资源和带宽并实现真正意义上的实时推送。</p>

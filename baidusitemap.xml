@@ -2,37 +2,9 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 
     
-    
-    
-  <url>
-    <loc>http://www.plhwin.com/2014/07/28/smartisan-t1/</loc>
-    <lastmod>2016-02-02T11:25:13.000Z</lastmod>
-    <data>
-        <display>
-        <title>Smartisan T1，锤子手机20天评测报告</title>
-        <pubTime>2014-07-28T02:25:56.000Z</pubTime>
-        
-        <tag>Smartisan </tag>
-         
-        <tag>T1 </tag>
-         
-        <tag>锤子手机 </tag>
-         
-        <tag>锤子科技 </tag>
-         
-         
-           
-             
-              <breadCrumb title="科技" url="http://www.plhwin.com/categories/%E7%A7%91%E6%8A%80/"/>
-          
-        </display>
-    </data>
-    </url>
-
-    
   <url>
     <loc>http://www.plhwin.com/2014/05/28/nodejs-socketio/</loc>
-    <lastmod>2016-02-02T11:00:58.000Z</lastmod>
+    <lastmod>2016-02-04T09:46:49.000Z</lastmod>
     <data>
         <display>
         <title>使用Node.js+Socket.IO搭建WebSocket实时应用</title>
@@ -61,6 +33,34 @@
     </data>
     </url>
 
+    
+  <url>
+    <loc>http://www.plhwin.com/2014/07/28/smartisan-t1/</loc>
+    <lastmod>2016-02-04T06:35:18.000Z</lastmod>
+    <data>
+        <display>
+        <title>Smartisan T1，锤子手机20天评测报告</title>
+        <pubTime>2014-07-28T02:25:56.000Z</pubTime>
+        
+        <tag>Smartisan </tag>
+         
+        <tag>T1 </tag>
+         
+        <tag>锤子手机 </tag>
+         
+        <tag>锤子科技 </tag>
+         
+         
+           
+             
+              <breadCrumb title="科技" url="http://www.plhwin.com/categories/%E7%A7%91%E6%8A%80/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+    
     
     
   <url>
